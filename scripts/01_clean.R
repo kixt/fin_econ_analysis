@@ -10,3 +10,5 @@ setwd("/Users/thore/Documents/Studium/Master/Semester5/Financial Econometrics/te
 # Import data -------------------------------------------------------------
 
 test_imp <- read.csv("./data/lse.csv")
+
+# bla
