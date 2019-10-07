@@ -80,7 +80,7 @@ qmle_ll <- function(theta, x) {
   return(-ll)
 }
 
-own_ll <- optim(c(1.5, 0.4), qmle_ll, x = dat$r)
+own_ll <- optim(c(2, 0.2), qmle_ll, x = dat$r)
 
 
 # Call Julia code ---------------------------------------------------------
@@ -90,7 +90,21 @@ findJulia(test = TRUE)
 
 library(readtext)
 
-# .jl file is OK, problem with R connection
+# read .jl source containing only the function
 arch1_nll.jl <- readtext("./scripts/julia_src/arch1_nll.jl")[[2]]
 
+# evaluate the code
 arch1_nll <- juliaEval(arch1_nll.jl)
+
+# load the Optim package into Julia session
+jl_Optim <- juliaEval("using Optim")
+
+# tell R that the evaluated function in the Julia workspace is a function usable 
+# in R (argument order maintained from Julia)
+arch1_nll_jl <- JuliaFunction(arch1_nll)
+
+# evaluate function with inputs
+test <- arch1_nll_jl(dat$r, c(2, 0.2))
+
+# get result
+test2 <- juliaGet(test)

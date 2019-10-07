@@ -1,4 +1,4 @@
-arch1_nll = function(x, theta)
+function arch1_nll(x, theta)
     n = length(x)
     xbar = 1 / n * sum(x)
 
@@ -6,7 +6,7 @@ arch1_nll = function(x, theta)
 
     uv = 1 / n * sum(diff2)
 
-    nll = function(thet)
+     function nll(thet)
         a0 = thet[1]
         a1 = thet[2]
 
@@ -21,5 +21,7 @@ arch1_nll = function(x, theta)
         return -ll
     end
 
-    return optimize(nll, theta)
+    res = optimize(nll, theta)
+    # return Optim.minimizer(res)
+    return res
 end
