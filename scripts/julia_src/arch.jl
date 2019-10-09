@@ -7,7 +7,7 @@ function arch(x::Float64, p::Int64, θ0::Float64)
             p: lag order of the ARCH model
             θ0: initial parameters for optimisation procedure
         Returns:
-            Optim.
+            Optim output
     =#
 
     function nll(θ::Float64)::Float64

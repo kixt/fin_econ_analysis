@@ -91,31 +91,27 @@ findJulia(test = TRUE)
 library(readtext)
 
 # read .jl source containing only the function
-arch1_nll.jl <- readtext("./scripts/julia_src/arch1_nll.jl")[[2]]
+arch.jl <- readtext("./scripts/julia_src/arch.jl")[[2]]
 
-# evaluate the code
-arch1_nll <- juliaEval(arch1_nll.jl)
-
-# load the Optim package into Julia session
+# evaluate the code and load the Optim package
+arch <- juliaEval(arch.jl)
 jl_Optim <- juliaEval("using Optim")
+
 
 # tell R that the evaluated function in the Julia workspace is a function usable 
 # in R (argument order maintained from Julia)
-arch1_nll_jl <- JuliaFunction(arch1_nll)
+arch_jl <- JuliaFunction(arch)
 
-# evaluate function with inputs
-test <- arch1_nll_jl(dat$r, c(2, 0.2))
+# evaluate function with inputs (keep track of types)
+test <- arch_jl(dat$r, 3L, c(1, 0.5, 0.1, 0.01))
 
 # get result
 test2 <- juliaGet(test)
 
-arch.jl <- readtext("./scripts/julia_src/arch.jl")[[2]]
 
-arch <- juliaEval(arch.jl)
-jl_Optim <- juliaEval("using Optim")
 
-arch_jl <- JuliaFunction(arch)
 
-test <- arch_jl(dat$r, 3L, c(1, 0.5, 0.1, 0.01))
 
-test2 <- juliaGet(test)
+
+
+
