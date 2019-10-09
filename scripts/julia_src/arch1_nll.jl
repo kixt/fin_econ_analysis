@@ -1,4 +1,4 @@
-function arch1_nll(x, theta)
+function arch1_nll(x::Array{Float64}, theta::Array{Float64, 2})
     n = length(x)
     xbar = 1 / n * sum(x)
 

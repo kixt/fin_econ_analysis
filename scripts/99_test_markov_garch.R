@@ -47,7 +47,7 @@ rm(test_imp)
 # ARCH(1) -----------------------------------------------------------------
 
 # benchmark estimation of ARCH(1)
-bench <- garch(dat$r, c(0, 1))
+bench <- garch(dat$r, c(0, 3))
 
 
 qmle_ll <- function(theta, x) {
@@ -63,7 +63,7 @@ qmle_ll <- function(theta, x) {
   xbar <- mean(x)
   
   dat <- data.table(x = x)
-  dat[, diff2 := (x - xbar)^2]
+  dat[, diff2 := (x)^2]
   
   a0 <- theta[1]
   a1 <- theta[2]
@@ -80,7 +80,7 @@ qmle_ll <- function(theta, x) {
   return(-ll)
 }
 
-own_ll <- optim(c(2, 0.2), qmle_ll, x = dat$r)
+own_ll_bounded <- optim(c(1, 0.1), qmle_ll, x = dat$r, lower = c(0, 0), method = "L-BFGS-B")
 
 
 # Call Julia code ---------------------------------------------------------
@@ -107,4 +107,15 @@ arch1_nll_jl <- JuliaFunction(arch1_nll)
 test <- arch1_nll_jl(dat$r, c(2, 0.2))
 
 # get result
+test2 <- juliaGet(test)
+
+arch.jl <- readtext("./scripts/julia_src/arch.jl")[[2]]
+
+arch <- juliaEval(arch.jl)
+jl_Optim <- juliaEval("using Optim")
+
+arch_jl <- JuliaFunction(arch)
+
+test <- arch_jl(dat$r, 3L, c(1, 0.5, 0.1, 0.01))
+
 test2 <- juliaGet(test)
