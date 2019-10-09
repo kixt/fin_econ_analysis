@@ -2,3 +2,5 @@
 .Rhistory
 .RData
 .Ruserdata
+/scripts/.DS_Store
+/scripts/julia_src/.DS_Store
