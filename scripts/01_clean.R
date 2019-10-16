@@ -3,7 +3,7 @@
 #####################################
 
 # Thore Petersen
-# September 2019
+# September, October 2019
 
 library(openxlsx)
 library(data.table)
