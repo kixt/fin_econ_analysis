@@ -13,7 +13,7 @@ library(ggplot2)
 # Load data ---------------------------------------------------------------
 
 load("./data/clean.RData")
-
+setkey(dt, iso3c, Date)
 
 # Set up GARCH specification ----------------------------------------------
 
@@ -34,7 +34,7 @@ test_spec <- ugarchspec(
 # otherwise estimted via ML
 
 for(m in markets) {
-  x <- dt[iso3c == m, ret]
+  x <- dt[m, ret]
   garch[[2]][[m]] <- ugarchfit(test_spec, x, solver = "hybrid")
 }; rm(m, x)
 

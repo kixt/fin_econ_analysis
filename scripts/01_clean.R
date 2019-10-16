@@ -24,13 +24,14 @@ mb_tmp[, iso3c := countrycode::countrycode(variable, "country.name", "iso3c")]
 # extract currency information
 mb_tmp[, currency := stringr::str_extract(variable, "EUR|GBP|USD|NOK")]
 
-# order and calculate returns
-setorder(mb_tmp, variable, Date)
+setkey(mb_tmp, iso3c, currency, Date)
+
+# calculate returns
 mb_tmp[, ret := c(NA_real_, diff(log(value))), by = variable]
 
 # trim leading missings
 mb_tmp2 <- mb_tmp[, na.trim(.SD), by = variable]
-
+setkey(mb_tmp2, iso3c, currency, Date)
 
 # Subset to relevant series -----------------------------------------------
 
