@@ -49,6 +49,7 @@ rm(test_imp)
 # benchmark estimation of ARCH(1)
 bench <- garch(dat$r, c(0, 3))
 
+plot(bench)
 
 qmle_ll <- function(theta, x) {
   # function to calculate negative log-likelihood of ARCH(1) model for x
