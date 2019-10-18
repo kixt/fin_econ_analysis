@@ -136,3 +136,7 @@ ggplot() +
   geom_line(aes(x = x, y = density), densities, colour = "red") +
   facet_wrap(iso3c ~ .)
 
+
+# Export GARCH residuals --------------------------------------------------
+
+save(dt, file = "./data/tmp/02_tmp.RData")
