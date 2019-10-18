@@ -14,7 +14,7 @@ library(tseries)
 
 # Import data -------------------------------------------------------------
 
-test_imp <- read.csv("./data/lse.csv")
+test_imp <- read.csv("./data/raw/lse.csv")
 
 dat <- data.table(
   date = as.Date(as.character(test_imp$Date)),

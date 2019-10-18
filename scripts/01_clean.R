@@ -12,7 +12,7 @@ library(zoo)
 
 # Import and prepare data -------------------------------------------------
 
-mb_imp <- read.xlsx("./data/macrobond.xlsx", 
+mb_imp <- read.xlsx("./data/raw/macrobond.xlsx", 
                     na.strings = "NaN", detectDates = TRUE)
 setDT(mb_imp)
 mb_tmp <- melt(mb_imp, id.vars = "Date")
@@ -44,4 +44,4 @@ mb_fin <- mb_fin[Date >= as.Date("1999-01-01")]
 # GBR data for EUR denominated index starts only mid 2005; GRC starts only early 2003
 
 dt <- mb_fin
-save(dt, file = "./data/clean.RData")
+save(dt, file = "./data/clean/clean.RData")

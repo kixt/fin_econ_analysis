@@ -15,7 +15,7 @@ library(copula)
 
 # Load data ---------------------------------------------------------------
 
-load("./data/clean.RData")
+load("./data/clean/clean.RData")
 setkey(dt, iso3c, Date)
 
 

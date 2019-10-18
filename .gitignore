@@ -4,3 +4,5 @@
 .Ruserdata
 /scripts/.DS_Store
 /scripts/julia_src/.DS_Store
+.DS_Store
+/data/.DS_Store
