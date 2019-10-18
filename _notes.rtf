@@ -1,5 +1,5 @@
-{\rtf1\ansi\ansicpg1252\cocoartf1671\cocoasubrtf600
-{\fonttbl\f0\fswiss\fcharset0 Helvetica-Bold;\f1\fswiss\fcharset0 Helvetica;}
+{\rtf1\ansi\ansicpg1252\cocoartf2509
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica-Bold;\f1\fswiss\fcharset0 Helvetica;}
 {\colortbl;\red255\green255\blue255;}
 {\*\expandedcolortbl;;}
 \paperw11900\paperh16840\margl1440\margr1440\vieww10800\viewh8400\viewkind0
@@ -26,4 +26,9 @@ Thore Petersen\
 10.10.19\
 - SWARCH prone to overfitting says Sjur\
 - sensible diagnostic for adequacy should be volatility clustering/breaks in ARCH residuals\
-- alternative: estimate GARCH and then some hidden Markov model on estimated volatility to identify normal/crisis periods}
+- alternative: estimate GARCH and then some hidden Markov model on estimated volatility to identify normal/crisis periods\
+\
+18.10.19\
+- resort to using rugarch implementation in R, together with copula package\
+- problem of identifying high volatility periods, difficult to model Markov process w/o changes in parameters of underlying model -> nothing to estimate\
+	- either with fixed date or some threshold; probably fixed date for financial crisis}
