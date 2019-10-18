@@ -10,6 +10,7 @@ library(rugarch)
 library(sn) # skew distributions
 library(fitdistrplus) # extends MASS::fitdistr(); probably overkill, we'll see
 library(ggplot2)
+library(copula)
 
 
 # Load data ---------------------------------------------------------------
@@ -47,8 +48,9 @@ for(m in markets) {
 
 # Extract GARCH residuals -------------------------------------------------
 
-# extract standardized residuals, i.e. epsi_t / sig_t|sig_{t-1}
+# extract standardized residuals, i.e. epsi_t / sig_t|sig_{t-1}, and sigma_t
 dt[, res := unlist(lapply(garch_fit, residuals, standardize = TRUE))]
+dt[, sig := unlist(lapply(garch_fit, sigma))]
 
 # # KDE for residuals
 # res_kde <- vector("list", n)
@@ -63,24 +65,15 @@ ggplot(dt) +
   facet_wrap(iso3c ~ .)
 
 # ECDF of residuals
-res_ecdf <- vector("list", n)
-names(res_ecdf) <- markets
-
-dt[, eqtl := NA_real_]
-
-for(m in markets) {
-  res_ecdf[[m]] <- ecdf(dt[m, res])
-  
-  # extract empirical quantile of residuals per country
-  dt[m, eqtl := res_ecdf[[m]](res)]
-}
+# copula::pobs() returns ecdf values scaled by n/(n+1), st. border cases fall into unit cube
+dt[, eqtl := pobs(res), by = iso3c]
 
 # create data.table of empirical quantiles to check dependence
 eqtls <- dcast(dt, Date ~ iso3c, value.var = "eqtl")
 
 # characteristic pattern for DEU--FRA, almost linear, with clustering in corners,
 # i.e. strong tail dependence
-ggplot(eqtls, aes(x = FRA, y = DEU)) + 
+ggplot(eqtls, aes(x = FRA, y = GRC)) + 
   geom_point()
 
 
