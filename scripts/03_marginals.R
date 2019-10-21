@@ -32,7 +32,7 @@ names(garch_spec) <- names(garch_fit) <- markets
 test_spec <- ugarchspec(
   variance.model = list(model = "sGARCH", garchOrder = c(1, 1)),
   mean.model = list(armaOrder = c(1, 1), include.mean = TRUE),
-  distribution.model = "std" 
+  distribution.model = "std" # skew-t
 )
 # use e.g. fixed.pars = list(shape = 5) to set dof of t distribution.model, 
 # otherwise estimted via ML
@@ -46,26 +46,59 @@ for(m in markets) {
 }
 
 
+# estimate GARCH(1,1) with different error families
+garch_dfams <- c("norm", "t", "st")
+
+garch_fit <- vector("list", length(garch_dfams))
+names(garch_fit) <- garch_dfams
+
+for(d in garch_dfams) {
+  garch_spec <- ugarchspec(
+    variance.model = list(model = "sGARCH", garchOrder = c(1, 1)),
+    mean.model = list(armaOrder = c(1, 1), include.mean = TRUE),
+    distribution.model = switch(d, norm = "norm", t = "std", st = "sstd")
+  )
+  
+  garch_fit[[d]] <- vector("list", length(markets))
+  names(garch_fit[[d]]) <- markets
+  
+  for(m in markets) {
+    garch_fit[[d]][[m]] <- ugarchfit(garch_spec, dt[m, ret], solver = "hybrid")
+  }
+}
+
+
+ic_garch <- expand.grid(markets, c("aic", "bic"), KEEP.OUT.ATTRS = FALSE)
+setDT(ic_garch)
+colnames(ic_garch) <- c("iso3c", "ic_garch")
+setkey(ic_garch, iso3c, ic_garch)
+
+
+for(m in markets) {
+  print(garch_fit[["norm"]][[m]])
+}
+
+
+x <- garch_fit[["norm"]][["DEU"]]
+y <- garch_fit[["st"]][["DEU"]]
+
+plot(x@fit$z, type = "l")
+hist(y@fit$z)
+
+
+
 # Extract GARCH residuals -------------------------------------------------
 
 # extract standardized residuals, i.e. epsi_t / sig_t|sig_{t-1}, and sigma_t
 dt[, res := unlist(lapply(garch_fit, residuals, standardize = TRUE))]
 dt[, sig := unlist(lapply(garch_fit, sigma))]
 
-# # KDE for residuals
-# res_kde <- vector("list", n)
-# names(res_kde) <- markets
-# 
-# for(m in markets) {
-#   res_kde[[m]] <- density(dt[m, res])
-# }
-
 ggplot(dt) +
   geom_density(aes(x = res)) +
   facet_wrap(iso3c ~ .)
 
 # ECDF of residuals
-# copula::pobs() returns ecdf values scaled by n/(n+1), st. border cases fall into unit cube
+# copula::pobs() returns ecdf values scaled by n/(n+1), st. everything in unit cube
 dt[, eqtl := pobs(res), by = iso3c]
 
 # create data.table of empirical quantiles to check dependence
@@ -73,7 +106,7 @@ eqtls <- dcast(dt, Date ~ iso3c, value.var = "eqtl")
 
 # characteristic pattern for DEU--FRA, almost linear, with clustering in corners,
 # i.e. strong tail dependence
-ggplot(eqtls, aes(x = FRA, y = GRC)) + 
+ggplot(eqtls, aes(x = FRA, y = DEU)) + 
   geom_point()
 
 
@@ -99,7 +132,45 @@ for(m in markets) {
                          start = list(xi = 0, omega = 1, alpha = 0, nu = 5))
 }
 
-gen_dens <- function(fit, grp_name, grp_id, n = 100) {
+
+# Fitting distributions to residuals -- t ---------------------------------
+
+# fit t-distribution to all residuals
+fit_t <- vector("list", n)
+names(fit_t) <- markets
+for(m in markets) {
+  fit_t[[m]] <- fitdist(dt[m, res], "t", start = list(df = 5))
+}
+
+
+# Compare fits of distributions -------------------------------------------
+
+# create data.table for the values of the information criteria of the fits
+dfams <- c("st", "t")
+ic_dens <- expand.grid(markets, c("aic", "bic"), KEEP.OUT.ATTRS = FALSE)
+setDT(ic_dens)
+colnames(ic_dens) <- c("iso3c", "ic_dens")
+setkey(ic_dens, iso3c, ic_dens)
+
+# extract values for AIC, BIC from the fit results
+ic_dens[, eval(dfams) := NA_real_]
+for(m in markets) {
+  for(d in dfams) {
+    fit_list <- as.name(paste0("fit_", d))
+    # not too firm with do.call() yet, but this works
+    ic_vals <- do.call(function(x) c(aic = x[[m]]$aic, bic = x[[m]]$bic), 
+                       list(x = fit_list))
+    ic_dens[m, eval(d) := ic_vals]
+  }
+}
+
+# determine which family gives the minimum ic_dens
+ic_dens[, pref := colnames(.SD)[which.min(.SD)], by = c("iso3c", "ic_dens")]
+
+
+# Plot KDE and fitted parametric density ----------------------------------
+
+gen_dens <- function(fit, grp_name, grp_id, n = 200) {
   # function to generate points to plot density estimate in fit, designed to 
   # generate data to overlay in ggplot() + facet_wrap(grp_name ~ .) instead of
   # stat_function()
