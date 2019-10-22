@@ -6,32 +6,17 @@
 # October 2019
 
 library(data.table)
-library(rugarch)
+#library(rugarch)
 library(sn) # skew distributions
 library(fitdistrplus) # extends MASS::fitdistr(); probably overkill, we'll see
 library(ggplot2)
-library(copula)
+#library(copula)
 
 
 # Load data ---------------------------------------------------------------
 
-load("./data/clean/clean.RData")
+load("./data/tmp/02_tmp.RData")
 setkey(dt, iso3c, Date)
-
-
-# Characterise GARCH residuals --------------------------------------------
-
-# ECDF of residuals
-# copula::pobs() returns ecdf values scaled by n/(n+1), st. everything in unit cube
-dt[, eqtl := pobs(res), by = iso3c]
-
-# create data.table of empirical quantiles to check dependence
-eqtls <- dcast(dt, Date ~ iso3c, value.var = "eqtl")
-
-# characteristic pattern for DEU--FRA, almost linear, with clustering in corners,
-# i.e. strong tail dependence
-ggplot(eqtls, aes(x = FRA, y = DEU)) + 
-  geom_point()
 
 
 # Fitting distributions to residuals -- skew-t ----------------------------
@@ -71,25 +56,25 @@ for(m in markets) {
 
 # create data.table for the values of the information criteria of the fits
 dfams <- c("st", "t")
-ic_dens <- expand.grid(markets, c("aic", "bic"), KEEP.OUT.ATTRS = FALSE)
-setDT(ic_dens)
-colnames(ic_dens) <- c("iso3c", "ic_dens")
-setkey(ic_dens, iso3c, ic_dens)
+ic <- expand.grid(markets, c("aic", "bic"), KEEP.OUT.ATTRS = FALSE)
+setDT(ic)
+colnames(ic) <- c("iso3c", "ic")
+setkey(ic, iso3c, ic)
 
 # extract values for AIC, BIC from the fit results
-ic_dens[, eval(dfams) := NA_real_]
+ic[, eval(dfams) := NA_real_]
 for(m in markets) {
   for(d in dfams) {
     fit_list <- as.name(paste0("fit_", d))
     # not too firm with do.call() yet, but this works
     ic_vals <- do.call(function(x) c(aic = x[[m]]$aic, bic = x[[m]]$bic), 
                        list(x = fit_list))
-    ic_dens[m, eval(d) := ic_vals]
+    ic[m, eval(d) := ic_vals]
   }
 }
 
-# determine which family gives the minimum ic_dens
-ic_dens[, pref := colnames(.SD)[which.min(.SD)], by = c("iso3c", "ic_dens")]
+# determine which family gives the minimum ic
+ic[, pref := colnames(.SD)[which.min(.SD)], by = c("iso3c", "ic")]
 
 
 # Plot KDE and fitted parametric density ----------------------------------
