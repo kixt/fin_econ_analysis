@@ -19,83 +19,7 @@ load("./data/clean/clean.RData")
 setkey(dt, iso3c, Date)
 
 
-# Set up GARCH specification ----------------------------------------------
-
-markets <- unique(dt$iso3c)
-n <- length(markets)
-
-# set up lists for specifications and results of GARCH estimation
-garch_spec <- vector("list", n)
-garch_fit <- vector("list", n)
-names(garch_spec) <- names(garch_fit) <- markets
-
-test_spec <- ugarchspec(
-  variance.model = list(model = "sGARCH", garchOrder = c(1, 1)),
-  mean.model = list(armaOrder = c(1, 1), include.mean = TRUE),
-  distribution.model = "std" # skew-t
-)
-# use e.g. fixed.pars = list(shape = 5) to set dof of t distribution.model, 
-# otherwise estimted via ML
-
-# estimate GARCH models
-for(m in markets) {
-  garch_spec[[m]] <- test_spec
-  
-  # select rows in data.table by key, fast binary search
-  garch_fit[[m]] <- ugarchfit(garch_spec[[m]], dt[m, ret], solver = "hybrid")
-}
-
-
-# estimate GARCH(1,1) with different error families
-garch_dfams <- c("norm", "t", "st")
-
-garch_fit <- vector("list", length(garch_dfams))
-names(garch_fit) <- garch_dfams
-
-for(d in garch_dfams) {
-  garch_spec <- ugarchspec(
-    variance.model = list(model = "sGARCH", garchOrder = c(1, 1)),
-    mean.model = list(armaOrder = c(1, 1), include.mean = TRUE),
-    distribution.model = switch(d, norm = "norm", t = "std", st = "sstd")
-  )
-  
-  garch_fit[[d]] <- vector("list", length(markets))
-  names(garch_fit[[d]]) <- markets
-  
-  for(m in markets) {
-    garch_fit[[d]][[m]] <- ugarchfit(garch_spec, dt[m, ret], solver = "hybrid")
-  }
-}
-
-
-ic_garch <- expand.grid(markets, c("aic", "bic"), KEEP.OUT.ATTRS = FALSE)
-setDT(ic_garch)
-colnames(ic_garch) <- c("iso3c", "ic_garch")
-setkey(ic_garch, iso3c, ic_garch)
-
-
-for(m in markets) {
-  print(garch_fit[["norm"]][[m]])
-}
-
-
-x <- garch_fit[["norm"]][["DEU"]]
-y <- garch_fit[["st"]][["DEU"]]
-
-plot(x@fit$z, type = "l")
-hist(y@fit$z)
-
-
-
-# Extract GARCH residuals -------------------------------------------------
-
-# extract standardized residuals, i.e. epsi_t / sig_t|sig_{t-1}, and sigma_t
-dt[, res := unlist(lapply(garch_fit, residuals, standardize = TRUE))]
-dt[, sig := unlist(lapply(garch_fit, sigma))]
-
-ggplot(dt) +
-  geom_density(aes(x = res)) +
-  facet_wrap(iso3c ~ .)
+# Characterise GARCH residuals --------------------------------------------
 
 # ECDF of residuals
 # copula::pobs() returns ecdf values scaled by n/(n+1), st. everything in unit cube
@@ -208,6 +132,6 @@ ggplot() +
   facet_wrap(iso3c ~ .)
 
 
-# Export GARCH residuals --------------------------------------------------
 
-save(dt, file = "./data/tmp/02_tmp.RData")
+
+
