@@ -71,4 +71,4 @@ ic[, pref := colnames(.SD)[which.min(.SD)], by = c("iso3c", "ic")]
 dt[, res := unlist(lapply(fit[["st"]], residuals, standardize = TRUE))]
 dt[, sig := unlist(lapply(fit[["st"]], sigma))]
 
-save(dt, file = "./data/tmp/02_tmp.RData")
+save(dt, markets, n, file = "./data/tmp/02_tmp.RData")
