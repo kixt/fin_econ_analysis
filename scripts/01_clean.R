@@ -33,9 +33,10 @@ mb_tmp[, ret := c(NA_real_, diff(log(value))), by = variable]
 mb_tmp2 <- mb_tmp[, na.trim(.SD), by = variable]
 setkey(mb_tmp2, iso3c, currency, Date)
 
+
 # Subset to relevant series -----------------------------------------------
 
-mb_fin <- mb_tmp2[currency != "GBP"]
+mb_fin <- mb_tmp2[currency %in% c("EUR", "USD")]
 mb_fin[, c("variable", "value") := NULL]
 
 # Date of official EURO introduction and fixation of intra-European exch. rates
