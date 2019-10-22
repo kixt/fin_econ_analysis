@@ -37,12 +37,14 @@ setkey(mb_tmp2, iso3c, currency, Date)
 # Subset to relevant series -----------------------------------------------
 
 mb_fin <- mb_tmp2[currency %in% c("EUR", "USD")]
+
+# GBR data for EUR denominated index starts only mid 2005; GRC starts only early 2003
+mb_fin <- mb_fin[!(iso3c %in% c("GBR", "GRC"))]
+
 mb_fin[, c("variable", "value") := NULL]
 
 # Date of official EURO introduction and fixation of intra-European exch. rates
 mb_fin <- mb_fin[Date >= as.Date("1999-01-01")]
-
-# GBR data for EUR denominated index starts only mid 2005; GRC starts only early 2003
 
 dt <- mb_fin
 save(dt, file = "./data/clean/clean.RData")
