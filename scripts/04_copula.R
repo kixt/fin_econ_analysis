@@ -6,7 +6,7 @@
 # October 2019
 
 library(data.table)
-# library(sn) # skew distributions
+library(sn) # skew distributions
 library(fitdistrplus) # extends MASS::fitdistr(); probably overkill, we'll see
 library(ggplot2)
 library(copula)

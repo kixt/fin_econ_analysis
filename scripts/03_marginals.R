@@ -95,7 +95,16 @@ st_params[, pval := 1 - pnorm(abs(tstat))]
 # Export fit results ------------------------------------------------------
 
 fit <- fit_st
-save(dt, fit, n, markets, file = "./data/tmp/03_tmp.RData")
+
+# calculate cdf values at the empirical observations, complicated looking call
+# to have matching argument names
+dt[, 
+   qntl := do.call(sn::pst, 
+                   args = c(list(x = res), split(unname(fit[[.GRP]]$estimate), 
+                                                 names(fit[[.GRP]]$estimate)))), 
+   by = iso3c]
+
+save(dt, n, markets, file = "./data/tmp/03_tmp.RData")
 
 
 # Plot KDE and fitted parametric density ----------------------------------
@@ -136,6 +145,5 @@ ggplot() +
   geom_density(aes(x = res), dt) +
   geom_line(aes(x = x, y = density), densities, colour = "red") +
   facet_wrap(iso3c ~ .)
-
 
 
