@@ -147,4 +147,7 @@ ggplot() +
   geom_line(aes(x = x, y = density), densities, colour = "red") +
   facet_wrap(iso3c ~ .)
 
-
+# not very uniform, fit can't account for high probability around mode
+ggplot(dt, aes(x = qntl, group = iso3c)) + 
+  geom_histogram() +
+  facet_wrap(iso3c ~.)

@@ -72,3 +72,16 @@ dt[, res := unlist(lapply(fit[["st"]], residuals, standardize = TRUE))]
 dt[, sig := unlist(lapply(fit[["st"]], sigma))]
 
 save(dt, markets, n, file = "./data/tmp/02_tmp.RData")
+
+
+
+test_spec <- ugarchspec(
+  variance.model = list(model = "gjrGARCH", garchOrder = c(1, 1)),
+  mean.model = list(armaOrder = c(1, 0), include.mean = TRUE),
+  distribution.model = "sged"
+)
+
+test_fit <- ugarchfit(test_spec, dt["DEU", ret], solver = "hybrid")
+plot(test_fit)
+
+test_distr <- ugarchdistribution(test_fit)
