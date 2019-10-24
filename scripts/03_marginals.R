@@ -6,11 +6,9 @@
 # October 2019
 
 library(data.table)
-#library(rugarch)
 library(sn) # skew distributions
 library(fitdistrplus) # extends MASS::fitdistr(); probably overkill, we'll see
 library(ggplot2)
-#library(copula)
 
 
 # Load data ---------------------------------------------------------------
@@ -75,6 +73,29 @@ for(m in markets) {
 
 # determine which family gives the minimum ic
 ic[, pref := colnames(.SD)[which.min(.SD)], by = c("iso3c", "ic")]
+# skew-t nests t and (skew-)normal, so fit skew-t and check parameters
+
+
+# Significance tests of parameter estimates -------------------------------
+
+st_params <- expand.grid(markets, names(fit_st[[1]]$estimate), 
+                         KEEP.OUT.ATTRS = FALSE)
+colnames(st_params) <- c("iso3c", "p")
+setDT(st_params)
+setkey(st_params, iso3c, p)
+
+st_params[, c("est", "sd") := .(fit_st[[.GRP]]$estimate, fit_st[[.GRP]]$sd), 
+          by = iso3c]
+
+st_params[, tstat := est / sd]
+st_params[, pval := 1 - pnorm(abs(tstat))]
+# all estimated parameters highly significant
+
+
+# Export fit results ------------------------------------------------------
+
+fit <- fit_st
+save(dt, fit, n, markets, file = "./data/tmp/03_tmp.RData")
 
 
 # Plot KDE and fitted parametric density ----------------------------------
@@ -115,8 +136,6 @@ ggplot() +
   geom_density(aes(x = res), dt) +
   geom_line(aes(x = x, y = density), densities, colour = "red") +
   facet_wrap(iso3c ~ .)
-
-
 
 
 

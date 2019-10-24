@@ -6,8 +6,7 @@
 # October 2019
 
 library(data.table)
-#library(rugarch)
-library(sn) # skew distributions
+# library(sn) # skew distributions
 library(fitdistrplus) # extends MASS::fitdistr(); probably overkill, we'll see
 library(ggplot2)
 library(copula)
@@ -15,7 +14,7 @@ library(copula)
 
 # Load data ---------------------------------------------------------------
 
-load("./data/tmp/02_tmp.RData")
+load("./data/tmp/03_tmp.RData")
 
 
 # Empirical quantiles -----------------------------------------------------
