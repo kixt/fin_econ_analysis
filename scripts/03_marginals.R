@@ -98,6 +98,7 @@ fit <- fit_st
 
 # calculate cdf values at the empirical observations, complicated looking call
 # to have matching argument names
+# split(unname(), names()) returns named list from named vector
 dt[, 
    qntl := do.call(sn::pst, 
                    args = c(list(x = res), split(unname(fit[[.GRP]]$estimate), 
