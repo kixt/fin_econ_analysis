@@ -21,7 +21,7 @@ n <- length(markets)
 
 # Test various specifications ---------------------------------------------
 
-dfams <- c("norm", "t", "st")
+dfams <- c("norm", "t", "st", "sged")
 specs <- vector("list", n)
 names(specs) <- dfams
 
@@ -33,7 +33,8 @@ for(d in dfams) {
   specs[[d]] <- ugarchspec(
     variance.model = list(model = "gjrGARCH", garchOrder = c(1, 1)),
     mean.model = list(armaOrder = c(1, 0), include.mean = TRUE),
-    distribution.model = switch(d, norm = "norm", t = "std", st = "sstd")
+    distribution.model = 
+      switch(d, norm = "norm", t = "std", st = "sstd", sged = "sged")
     )
   
   fit[[d]] <- vector("list", n)
@@ -63,25 +64,20 @@ for(m in markets) {
 
 ic[, pref := colnames(.SD)[which.min(.SD)], by = c("iso3c", "ic")]
 # skewed-t preferred in all countries according to both ICs
+# skew generalised error distr preferred in most countries, better accounts for 
+# kurtosis/peakedness in the mode
+
+pref_d <- ic[ic == "aic", .(iso3c, pref)]
 
 
 # Export GARCH results ----------------------------------------------------
 
-# extract standardized residuals, i.e. epsi_t / sig_t|sig_{t-1}, and sigma_t
-dt[, res := unlist(lapply(fit[["st"]], residuals, standardize = TRUE))]
-dt[, sig := unlist(lapply(fit[["st"]], sigma))]
+# extract standardized residuals, i.e. epsi_t / sig_t|sig_{t-1}, and sigma_t,
+# extract it from the fit using the preferred distribution by country
+dt[, res := as.numeric(residuals(fit[[pref_d[.GRP, pref]]][[.GRP]], standardize = TRUE)), 
+   by = iso3c]
+dt[, sig := as.numeric(sigma(fit[[pref_d[.GRP, pref]]][[.GRP]])), 
+   by = iso3c]
 
-save(dt, markets, n, file = "./data/tmp/02_tmp.RData")
+save(dt, markets, n, pref_d, file = "./data/tmp/02_tmp.RData")
 
-
-
-test_spec <- ugarchspec(
-  variance.model = list(model = "gjrGARCH", garchOrder = c(1, 1)),
-  mean.model = list(armaOrder = c(1, 0), include.mean = TRUE),
-  distribution.model = "sged"
-)
-
-test_fit <- ugarchfit(test_spec, dt["DEU", ret], solver = "hybrid")
-plot(test_fit)
-
-test_distr <- ugarchdistribution(test_fit)
