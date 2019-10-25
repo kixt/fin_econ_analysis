@@ -8,8 +8,9 @@
 library(data.table)
 library(sn) # skew distributions
 library(sgt) # skew generalised t and related
-library(fitdistrplus) # extends MASS::fitdistr(); probably overkill, we'll see
+library(fitdistrplus) # extends MASS::fitdistr()
 library(ggplot2)
+library(gridExtra)
 
 
 # Load data ---------------------------------------------------------------
@@ -38,7 +39,7 @@ pst <- function(q, xi=0, omega=1, alpha=0, nu=Inf, dp=NULL, method=0) {
 
 psged <- function(q, mu = 0, sigma = 1, lambda = 0, p = 2) {
   # wrapper around sgt::psgt() for fitdistrplus::fitdist, specific requirements 
-  # for arguments, and fix q = Inf to use SGED, not SGT
+  # for arguments, and fix q = Inf to use SGED, nested in SGT
   
   if(length(q) == 0) return(NULL)
   sgt::psgt(quant = q, mu = mu, sigma = sigma, lambda = lambda, p = p, q = Inf)
@@ -51,7 +52,7 @@ dsged <- function(x, mu = 0, sigma = 1, lambda = 0, p = 2) {
   sgt::dsgt(x = x, mu = mu, sigma = sigma, lambda = lambda, p = p, q = Inf)
 }
 
-## starting values for the various distributions
+## starting values for the distributions
 svals <- vector("list", length(dfams))
 names(svals) <- dfams
 
@@ -72,6 +73,9 @@ for(d in dfams) {
     fit[[d]][[m]] <- fitdist(dt[m, res], d, start = svals[[d]])
   }
 }
+
+# save(fit, file = "./data/tmp/param_distr_fit.RData")
+# load("./data/tmp/param_distr_fit.RData")
 
 
 # Compare fits of distributions -------------------------------------------
@@ -100,6 +104,7 @@ ic[, pref := colnames(.SD)[which.min(.SD)], by = c("iso3c", "ic")]
 
 # agrees with preferred error distribution in rugarch (sensibly)
 pref_d[, pref_fit := ic[ic == "aic", pref]]
+setkey(pref_d, iso3c)
 
 
 # Significance tests of parameter estimates -------------------------------
@@ -121,22 +126,6 @@ for(d in dfams) {
   dparams[[d]][, tstat := est / sd]
   dparams[[d]][, pval := 1 - pnorm(abs(tstat))]
 }
-
-
-# Export fit results ------------------------------------------------------
-
-fit <- fit_st
-
-# calculate cdf values at the empirical observations, complicated looking call
-# to have matching argument names
-# split(unname(), names()) returns named list from named vector
-dt[, 
-   qntl := do.call(sn::pst, 
-                   args = c(list(x = res), split(unname(fit[[.GRP]]$estimate), 
-                                                 names(fit[[.GRP]]$estimate)))), 
-   by = iso3c]
-
-save(dt, n, markets, file = "./data/tmp/03_tmp.RData")
 
 
 # Plot KDE and fitted parametric density ----------------------------------
@@ -169,16 +158,65 @@ gen_dens <- function(fit, grp_name, grp_id, n = 200) {
 densities <- vector("list", n)
 names(densities) <- markets
 for(m in markets) {
-  densities[[m]] <- gen_dens(fit_sged[[m]], "iso3c", m)
+  pd <- pref_d[iso3c == m, pref]
+  densities[[m]] <- gen_dens(fit[[pd]][[m]], "iso3c", m)
 }
 densities <- rbindlist(densities)
 
 ggplot() +
   geom_density(aes(x = res), dt) +
   geom_line(aes(x = x, y = density), densities, colour = "red") +
-  facet_wrap(iso3c ~ .)
+  facet_wrap(iso3c ~ .) +
+  theme_minimal() +
+  theme(legend.position = c(0, 0.2))
 
-# skew-t not very uniform, fit can't account for high probability around mode
-ggplot(dt, aes(x = qntl, group = iso3c)) + 
-  geom_histogram() +
-  facet_wrap(iso3c ~.)
+
+# Create final list of best fitting distributions and params --------------
+
+# try something new, define a class
+dfit <- setClass("dfit", slots = list(dfam = "character", params = "list"))
+
+# populate list of final best fits per country with class dfit
+fin_fit <- vector("list", n)
+names(fin_fit) <- markets
+for(m in markets) {
+  pd <- pref_d[m, pref_fit]
+  pars <- fit[[pd]][[m]]$estimate
+  # split(unname(), names()) returns named list from named vector
+  pars <- split(unname(pars), names(pars))
+  
+  fin_fit[[m]] <- dfit(dfam = pd, params = pars)
+}; rm(pd, pars)
+
+pfn <- function(x, object) {
+  # function for S4 class dfit, calculates the distribution function of the 
+  # object at the given parameters
+  # Args:
+  #   x: numeric vector of quantiles
+  #   object: of S4class dfit, see above
+  # Returns:
+  #   a numeric vector of densities at the given quantiles
+  
+  if(!("dfit" %in% class(object))) stop("Provide a dfit object.")
+  
+  f <- switch(object@dfam, st = "pst", sged = "psged")
+  do.call(f, c(list(q = x), object@params))
+}
+
+
+# Check fit again ---------------------------------------------------------
+
+# calculate cdf values at the empirical observations, complicated looking call
+# to have matching argument names
+dt[, qntl := do.call(pfn, args = list(x = res, object = fin_fit[[.GRP]])), 
+   by = iso3c]
+
+ggplot(dt, aes(x = qntl, group = iso3c)) +
+  geom_histogram(bins = 50) +
+  facet_wrap(iso3c ~ .) +
+  theme_minimal()
+
+
+# Export fit results ------------------------------------------------------
+
+save(dt, n, markets, file = "./data/tmp/03_tmp.RData")
