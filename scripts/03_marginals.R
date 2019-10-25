@@ -10,7 +10,6 @@ library(sn) # skew distributions
 library(sgt) # skew generalised t and related
 library(fitdistrplus) # extends MASS::fitdistr()
 library(ggplot2)
-library(gridExtra)
 
 
 # Load data ---------------------------------------------------------------

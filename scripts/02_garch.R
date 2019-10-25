@@ -80,4 +80,3 @@ dt[, sig := as.numeric(sigma(fit[[pref_d[.GRP, pref]]][[.GRP]])),
    by = iso3c]
 
 save(dt, markets, n, pref_d, file = "./data/tmp/02_tmp.RData")
-
