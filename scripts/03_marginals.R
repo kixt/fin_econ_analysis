@@ -57,6 +57,7 @@ names(svals) <- dfams
 
 svals[["st"]] <- list(xi = 0, omega = 1, alpha = 0, nu = 5)
 svals[["sged"]] <- list(mu = 0, sigma = 1, lambda = 0, p = 1)
+svals[["norm"]] <- list(mean = 0, sd = 1)
 
 
 # Fitting distributions ---------------------------------------------------
@@ -157,7 +158,7 @@ gen_dens <- function(fit, grp_name, grp_id, n = 200) {
 densities <- vector("list", n)
 names(densities) <- markets
 for(m in markets) {
-  pd <- pref_d[iso3c == m, pref]
+  pd <- pref_d[iso3c == m, pref_fit]
   densities[[m]] <- gen_dens(fit[[pd]][[m]], "iso3c", m)
 }
 densities <- rbindlist(densities)
@@ -198,7 +199,7 @@ pfn <- function(x, object) {
   
   if(!("dfit" %in% class(object))) stop("Provide a dfit object.")
   
-  f <- switch(object@dfam, st = "pst", sged = "psged")
+  f <- switch(object@dfam, st = "pst", sged = "psged", norm = "pnorm")
   do.call(f, c(list(q = x), object@params))
 }
 
