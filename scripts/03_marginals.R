@@ -5,6 +5,11 @@
 # Thore Petersen
 # October 2019
 
+# fit skew-t and skew-generalised error distributions to GARCH-filtered residuals
+# selection of distribution by country according to AIC and BIC
+# fit OK, overprediction of very extreme events, underprediction of realisations 
+# around 0
+
 library(data.table)
 library(sn) # skew distributions
 library(sgt) # skew generalised t and related
@@ -211,8 +216,9 @@ pfn <- function(x, object) {
 dt[, qntl := do.call(pfn, args = list(x = res, object = fin_fit[[.GRP]])), 
    by = iso3c]
 
+# estimated density overpredicts extreme events, fewer observed than predicted
 ggplot(dt, aes(x = qntl, group = iso3c)) +
-  geom_histogram(bins = 50) +
+  geom_histogram(bins = 100) +
   facet_wrap(iso3c ~ .) +
   theme_minimal()
 
