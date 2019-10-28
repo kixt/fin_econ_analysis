@@ -41,7 +41,7 @@ tails <- setClass(
 
 # Identify tails and fit GPD per tail -------------------------------------
 
-q <- 0.05
+q <- 0.01
 tail_threshs <- tapply(dt$res, dt$iso3c, quantile, probs = c(q, 1 - q))
 
 dt[, tail := "none"]
@@ -84,7 +84,7 @@ for(m in markets) {
       params = as.list(fit_gpd[[m]][["upper"]]$fitted.values)
     )
   )
-}
+}; rm(x, t)
 
 
 # Evaluate CDF of combination of truncated distributions ------------------
