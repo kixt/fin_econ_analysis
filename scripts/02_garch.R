@@ -6,7 +6,6 @@
 # October 2019
 
 # fit AR(1)-GJR-GARCH(1, 1) to daily nominal stock returns
-# estimate model with skew-t and skew-generalised error distribution residuals
 # select model by country according to AIC, BIC
 
 library(data.table)
