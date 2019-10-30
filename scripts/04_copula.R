@@ -15,6 +15,24 @@ library(copula)
 load("./data/tmp/03_tmp.RData")
 
 
+# Concordance measures ----------------------------------------------------
+
+conc_measures <- c("pearson", "kendall", "spearman")
+conc <- vector("list", length(conc_measures))
+names(conc) <- conc_measures
+
+qntls <- dcast(dt, Date ~ iso3c, value.var = "qntl")
+
+for(c in conc_measures) {
+  conc[[c]] <- cor(qntls[, -1], 
+                   method = c,
+                   use = "pairwise.complete.obs")
+}
+# rather large difference between pearson and kendall and spearman and kendall, 
+# spearman and pearson rather similar in magnitude
+mean(conc[[1]] - conc[[3]])
+
+
 # Empirical quantiles -----------------------------------------------------
 
 # ECDF of residuals
@@ -40,5 +58,3 @@ c_dt_DF[, Date := NULL]
 c_dt_DF <- as.matrix(c_dt_DF)
 
 test <- fitCopula(copula = tCopula(), data = c_dt_DF)
-
-
