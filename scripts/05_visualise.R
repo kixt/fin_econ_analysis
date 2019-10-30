@@ -15,9 +15,6 @@ library(viridis)
 
 load("./data/tmp/03_tmp.RData")
 
-# calculate empirical quantiles
-dt[, eqntl := copula::pobs(res), by = iso3c]
-
 
 # Heatmap of empirical quantiles ------------------------------------------
 
@@ -61,7 +58,7 @@ ggplot(kde_dens, aes(x, y, fill = z)) +
   geom_tile() +
   scale_fill_viridis() +
   theme_minimal() +
-  facet_wrap(pair ~ ., scales = "free")
+  facet_wrap(pair ~ .)
 
 
 

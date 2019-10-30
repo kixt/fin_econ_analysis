@@ -216,6 +216,10 @@ pfn <- function(x, object) {
 dt[, qntl := do.call(pfn, args = list(x = res, object = fin_fit[[.GRP]])), 
    by = iso3c]
 
+# ECDF of residuals
+# copula::pobs() returns ecdf values scaled by n/(n+1), st. everything in unit cube
+dt[, eqntl := copula::pobs(res), by = iso3c]
+
 # estimated density overpredicts extreme events, fewer observed than predicted
 ggplot(dt, aes(x = qntl, group = iso3c)) +
   geom_histogram(bins = 100) +

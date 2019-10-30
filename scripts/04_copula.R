@@ -35,10 +35,6 @@ mean(conc[[1]] - conc[[3]])
 
 # Empirical quantiles -----------------------------------------------------
 
-# ECDF of residuals
-# copula::pobs() returns ecdf values scaled by n/(n+1), st. everything in unit cube
-dt[, eqntl := pobs(res), by = iso3c]
-
 # create data.table of empirical quantiles to check dependence
 eqntls <- dcast(dt, Date ~ iso3c, value.var = "eqntl")
 
