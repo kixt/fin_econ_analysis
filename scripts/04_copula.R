@@ -30,7 +30,7 @@ for(c in conc_measures) {
 }
 # rather large difference between pearson and kendall and spearman and kendall, 
 # spearman and pearson rather similar in magnitude
-mean(conc[[1]] - conc[[3]])
+mean(conc[[1]] - conc[[2]])
 
 
 # Empirical quantiles -----------------------------------------------------

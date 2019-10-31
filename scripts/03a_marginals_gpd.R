@@ -193,6 +193,8 @@ ggplot(subset(dt, tail != "none")) +
   facet_wrap(iso3c~tail, scales = "free") + 
   geom_density(aes(x = res))
 
+# figure out how to do the smooth transition
 ggplot(dt, aes(res, d_est)) +
   geom_line() +
   facet_wrap(~iso3c)
+

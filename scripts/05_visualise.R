@@ -105,3 +105,9 @@ ggplot(kde_dens, aes(x, y, fill = z)) +
 # not very instructive, cut off super heavy tails in limits for KDE, otherwise 
 # plots hardly legible; other than that high variation per country, so dim 
 
+
+ggplot(dt, aes(x = Date, y = sig, colour = iso3c)) + 
+  geom_line() +
+  facet_wrap(~iso3c)
+
+
