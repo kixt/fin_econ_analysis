@@ -41,7 +41,7 @@ tails <- setClass(
 
 # Identify tails and fit GPD per tail -------------------------------------
 
-q <- 0.01
+q <- 0.05
 tail_threshs <- tapply(dt$res, dt$iso3c, quantile, probs = c(q, 1 - q))
 
 dt[, tail := "none"]
@@ -93,7 +93,7 @@ pgpd_ecdf_mix <- function(dat, tails, x = "res", t = "tail") {
   # function to calculate CDF combined from parametric GPD estimatations for tails,
   # and ecdf for middle observations
   # Args:
-  #   dt: data.table with a column containing the random variable of interest and
+  #   dat: data.table with a column containing the random variable of interest and
   #     a factor column to identify the tail
   #   tails: an object of class tails containing the results of fitting a GPD
   #   x: column of the random variable
@@ -140,3 +140,59 @@ ggplot(dt, aes(x = p_est)) +
   facet_wrap(iso3c ~ .)
 
 
+# Evaluate density of combined distribution -------------------------------
+
+dgpd_kde_mix <- function(dat, tails, x = "res", t = "tail") {
+  # function to calculate density of mixture between GPD fit in tails and KDE in
+  # middle
+  # Args:
+  #   dat: data.table with a column containing the random variable of interest and
+  #     a factor column to identify the tail
+  #   tails: an object of class tails containing the results of fitting a GPD
+  #   x: column of the random variable
+  #   t: column of the factor identifying the tail, must be {lower, none, upper}
+  
+  q <- tails@quantile
+  
+  # for deployment in dt[, j = , by = ], makes implicit use of `:=` in .SD
+  dt <- copy(dat)
+  
+  xl <- dt[get(t) == "lower", get(x)]
+  xm <- dt[get(t) == "none", get(x)]
+  xu <- dt[get(t) == "upper", get(x)]
+  
+  dl <- do.call(
+    "dgpd",
+    args = c(list(x = (-1) * xl, loc = tails@lower@thresh), tails@lower@params)
+    )
+  dl <- dl * q
+  dt[get(t) == "lower", d_est := dl]
+  
+  du <- do.call(
+    "dgpd",
+    args = c(list(x = xu, loc = tails@upper@thresh), tails@upper@params)
+  )
+  du <- du * q
+  dt[get(t) == "upper", d_est := du]
+  
+  # density returns estimated density over grid of x
+  kde <- density(dt[, get(x)], n = length(dt[, get(x)]))
+  # approximate density at actual values of x
+  dm <- approx(x = kde$x, y = kde$y, xm)$y
+  
+  dt[get(t) == "none", d_est := dm]
+  
+  return(dt[, d_est])
+}
+
+dt[, d_est := dgpd_kde_mix(.SD, fitted_tails[[.GRP]]), by = iso3c]
+
+# fit in tails not too bad for q = 0.05
+ggplot(subset(dt, tail != "none")) + 
+  geom_line(aes(x = res, y = d_est * 1 / q)) +
+  facet_wrap(iso3c~tail, scales = "free") + 
+  geom_density(aes(x = res))
+
+ggplot(dt, aes(res, d_est)) +
+  geom_line() +
+  facet_wrap(~iso3c)
