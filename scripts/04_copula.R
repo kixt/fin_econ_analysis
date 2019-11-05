@@ -3,7 +3,7 @@
 #####################################
 
 # Thore Petersen
-# October 2019
+# October, November 2019
 
 library(data.table)
 library(ggplot2)
