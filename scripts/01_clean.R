@@ -3,7 +3,7 @@
 #####################################
 
 # Thore Petersen
-# September, October 2019
+# September, October, November 2019
 
 library(openxlsx)
 library(data.table)
@@ -12,7 +12,7 @@ library(zoo)
 
 # Import and prepare data -------------------------------------------------
 
-mb_imp <- read.xlsx("./data/raw/macrobond.xlsx", sheet = "price_return", 
+mb_imp <- read.xlsx("./data/raw/macrobond.xlsx", sheet = "total_return", 
                     na.strings = "NaN", detectDates = TRUE)
 setDT(mb_imp)
 mb_tmp <- melt(mb_imp, id.vars = "Date")
@@ -30,6 +30,16 @@ mb_tmp["FRA", index := "CAC40"]
 mb_tmp["IRL", index := "ISEQ"]
 mb_tmp["ITA", index := "MIB"]
 mb_tmp["USA", index := "SP500"]
+
+mb_tmp <- mb_tmp[!is.na(index)]
+
+# mistake in irish series, just linearly impute
+mb_tmp[
+  iso3c == "IRL" & Date == as.Date("2004-03-25"), 
+  value := mean(
+    mb_tmp["IRL"][Date %in% as.Date(c("2004-03-24", "2004-03-26")), value]
+    )
+  ]
 
 # calculate returns
 mb_tmp[, ret := c(NA_real_, diff(log(value))), by = variable]
