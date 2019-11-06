@@ -150,7 +150,7 @@ gen_dens <- function(fit, grp_name, grp_id, n = 200) {
   if(class(fit) != "fitdist") stop("fit must be class fitdist")
   
   dfn <- paste0("d", fit$distname)
-  dargs <- split(unname(fit$estimate), names(fit$estimate))
+  dargs <- as.list(fit$estimate)
   
   grid <- data.table(x = with(fit, seq(min(data), max(data), length = n)))
   grid[, density := do.call(dfn, c(list(x = x), dargs))]
@@ -225,6 +225,32 @@ ggplot(dt, aes(x = qntl, group = iso3c)) +
   geom_histogram(bins = 100) +
   facet_wrap(iso3c ~ .) +
   theme_minimal()
+
+
+# Check fit in tails only -------------------------------------------------
+
+q <- 0.05
+tail_threshs <- tapply(dt$res, dt$iso3c, quantile, probs = c(q, 1 - q))
+
+dt[, tail := "none"]
+for(m in markets) {
+  dt[iso3c == m & res <= tail_threshs[[m]][1], tail := "lower"]
+  dt[iso3c == m & res >= tail_threshs[[m]][2], tail := "upper"]
+  
+  densities[iso3c == m & x <= tail_threshs[[m]][1], tail := "lower"]
+  densities[iso3c == m & x >= tail_threshs[[m]][2], tail := "upper"]
+}
+setkey(dt, iso3c, tail)
+densities[is.na(tail), tail := "none"]
+
+ggplot() +
+  geom_density(aes(x = res), subset(dt, tail != "none")) +
+  geom_line(aes(x = x, y = density), subset(densities, tail != "none"), 
+            colour = "red") +
+  facet_wrap(iso3c ~ tail, scales = "free") +
+  theme_minimal()
+
+# fit not very good at all
 
 
 # Export fit results ------------------------------------------------------

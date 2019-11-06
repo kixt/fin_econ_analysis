@@ -3,13 +3,12 @@
 #####################################
 
 # Thore Petersen
-# October 2019
+# October, November 2019
 
 # fit generalised Pareto distribution to lower and upper tail of GARCH-filtered 
 # residuals, use ECDF between the tails
-# fit not very good, shape parameter estimate with high SE in all countries
-# tail behaviour potentially with less systematic overprediction of extreme tail 
-# events compared to ST/SGED
+# fit in tail much better than ST, SGED, but shape parameter estimate with high 
+# SE in all countries
 
 library(data.table)
 library(POT)
@@ -98,10 +97,13 @@ pgpd_ecdf_mix <- function(dat, tails, x = "res", t = "tail") {
   #   tails: an object of class tails containing the results of fitting a GPD
   #   x: column of the random variable
   #   t: column of the factor identifying the tail, must be {lower, none, upper}
+  # Returns:
+  #   the distribution function evaluated at the values of dat[, get(x)]
+  
 
   q <- tails@quantile
   
-  # for deployment in dt[, j = , by = ], makes implicit use of `:=` in .SD
+  # for deployment in dt[, j = , by = ] which makes implicit use of `:=` in .SD
   dt <- copy(dat)
   
   xl <- dt[get(t) == "lower", get(x)]
@@ -131,11 +133,11 @@ pgpd_ecdf_mix <- function(dat, tails, x = "res", t = "tail") {
   return(dt[, p_est])
 }
 
+dt[, eqntl := copula::pobs(res), by = iso3c]
+dt[, qntl := pgpd_ecdf_mix(.SD, fitted_tails[[.GRP]]), by = iso3c]
 
-dt[, p_est := pgpd_ecdf_mix(.SD, fitted_tails[[.GRP]]), by = iso3c]
-
-# tail fit not very good either, also high SE in parameter estimates of shape
-ggplot(dt, aes(x = p_est)) + 
+# tail fit not super either, also high SE in parameter estimates of shape
+ggplot(dt, aes(x = qntl)) + 
   geom_histogram(bins = 100) +
   facet_wrap(iso3c ~ .)
 
@@ -151,6 +153,8 @@ dgpd_kde_mix <- function(dat, tails, x = "res", t = "tail") {
   #   tails: an object of class tails containing the results of fitting a GPD
   #   x: column of the random variable
   #   t: column of the factor identifying the tail, must be {lower, none, upper}
+  # Returns:
+  #   the density function evaluated at dat[, get(x)]
   
   q <- tails@quantile
   
@@ -168,19 +172,18 @@ dgpd_kde_mix <- function(dat, tails, x = "res", t = "tail") {
   dl <- dl * q
   dt[get(t) == "lower", d_est := dl]
   
+  # density returns estimated density over grid of x
+  kde <- density(dt[, get(x)], n = length(dt[, get(x)]))
+  # approximate density at actual values of x
+  dm <- approx(x = kde$x, y = kde$y, xm)$y
+  dt[get(t) == "none", d_est := dm]
+  
   du <- do.call(
     "dgpd",
     args = c(list(x = xu, loc = tails@upper@thresh), tails@upper@params)
   )
   du <- du * q
   dt[get(t) == "upper", d_est := du]
-  
-  # density returns estimated density over grid of x
-  kde <- density(dt[, get(x)], n = length(dt[, get(x)]))
-  # approximate density at actual values of x
-  dm <- approx(x = kde$x, y = kde$y, xm)$y
-  
-  dt[get(t) == "none", d_est := dm]
   
   return(dt[, d_est])
 }
@@ -197,4 +200,11 @@ ggplot(subset(dt, tail != "none")) +
 ggplot(dt, aes(res, d_est)) +
   geom_line() +
   facet_wrap(~iso3c)
+
+dt[, d_est := NULL] # delete for compatability of exported data with 03_marginals.R
+
+
+# Calcuate distribution function and save ---------------------------------
+
+save(dt, n, markets, file = "./data/tmp/03_tmp.RData")
 

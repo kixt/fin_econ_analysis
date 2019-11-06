@@ -28,7 +28,7 @@ for(i in 1:(n - 1)) {
     m2 <- markets[j]
     
     # reshape data and trim to pairwise complete observations
-    dt_sub <- dcast(dt[.(c(m1, m2))], Date ~ iso3c, value.var = "eqntl")
+    dt_sub <- dcast(dt[.(c(m1, m2))], Date ~ iso3c, value.var = "qntl")
     dt_sub <- zoo::na.trim(dt_sub)
     
     # estimate bivariate KDE
