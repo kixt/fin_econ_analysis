@@ -3,7 +3,7 @@
 #####################################
 
 # Thore Petersen
-# October 2019
+# October, November 2019
 
 library(data.table)
 library(ggplot2)
@@ -63,6 +63,8 @@ ggplot(eq_kde_dens, aes(x, y, fill = z)) +
 
 # Heatmap of joint density estimate ---------------------------------------
 
+support <- c(-8, 8)
+
 kde_ls <- vector("list", n * (n - 1) / 2)
 for(i in 1:(n - 1)) {
   for(j in (i + 1):n) {
@@ -76,7 +78,7 @@ for(i in 1:(n - 1)) {
     # estimate bivariate KDE
     # need to include limits to make grid evenly spaced for geom_tiles()
     kde_tmp <- kde2d(dt_sub[, get(m1)], dt_sub[, get(m2)], n = 100, 
-                     lims = c(-5, 5, -5, 5))
+                     lims = c(support, support))
     
     dt_tmp <- expand.grid(x = kde_tmp$x, y = kde_tmp$y)
     dt_tmp$z <- as.numeric(kde_tmp$z) # unwraps matrix
