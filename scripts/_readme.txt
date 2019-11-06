@@ -15,6 +15,7 @@ NTNU Trondheim
 - exports the main dataset appended with the GARCH results
 
 03_marginals.R
+- soft-deprecated, use 03_marginals_gpd.R instead
 - imports data produced by 02_garch.R
 - fit parametric distribution (skew-t and skew-generalised error distribution) to the standardised residuals produced in 02_garch.R
 - exports the main dataset appended with the fitted distribution function evaluated at the values of the GARCH residuals
