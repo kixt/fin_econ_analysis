@@ -18,19 +18,46 @@ load("./data/tmp/03_tmp.RData")
 # Concordance measures ----------------------------------------------------
 
 conc_measures <- c("pearson", "kendall", "spearman")
-conc <- vector("list", length(conc_measures))
-names(conc) <- conc_measures
+conc <- vector("list", 3)
+names(conc) <- c("all", "normal vola", "high vola")
+
+for(i in seq_along(conc)) {
+  conc[[i]] <- vector("list", length(conc_measures))
+  names(conc[[i]]) <- conc_measures
+}
 
 qntls <- dcast(dt, Date ~ iso3c, value.var = "qntl")
 
 for(c in conc_measures) {
-  conc[[c]] <- cor(qntls[, -1], 
-                   method = c,
-                   use = "pairwise.complete.obs")
+  conc[[1]][[c]] <- cor(qntls[, -1], 
+                        method = c,
+                        use = "pairwise.complete.obs")
 }
-# rather large difference between pearson and kendall and spearman and kendall, 
-# spearman and pearson rather similar in magnitude
-mean(conc[[1]] - conc[[2]])
+# Pearson and Spearman super close, Kendall a little smaller for all
+
+## concordance measures by volatility regime
+# very simple regime indicator
+dt[, high_vola := ifelse(sig > quantile(sig, 0.9), TRUE, FALSE), by = iso3c]
+
+qntls_hv <- dcast(dt[high_vola == TRUE], Date ~ iso3c, value.var = "qntl")
+qntls_lv <- dcast(dt[high_vola == FALSE], Date ~ iso3c, value.var = "qntl")
+
+for(c in conc_measures) {
+  conc[[2]][[c]] <- cor(qntls_lv[, -1], 
+                        method = c,
+                        use = "pairwise.complete.obs")
+}
+
+for(c in conc_measures) {
+  conc[[3]][[c]] <- cor(qntls_hv[, -1], 
+                        method = c,
+                        use = "pairwise.complete.obs")
+}
+
+conc[[1]]
+conc[[2]]
+conc[[3]]
+# higher pairwise concordances in high volatility regimes
 
 
 # Empirical quantiles -----------------------------------------------------
