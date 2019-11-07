@@ -29,3 +29,7 @@ rm(dt_gpd, dt_stsged)
 dt[, c("mse_gpd", "mse_stsged") := .(mean((eqntl - d_gpd)^2), 
                                      mean((eqntl - d_stsged)^2)), 
    by = .(iso3c, tail)]
+
+# MSE in lower tail always lower for skew-t/skew-GED compared to GPD; in upper tail
+# GPD typically better
+dt[, mean(mse_gpd - mse_stsged), by = .(iso3c, tail)]
