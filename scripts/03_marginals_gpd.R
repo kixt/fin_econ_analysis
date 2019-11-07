@@ -206,5 +206,6 @@ dt[, d_est := NULL] # delete for compatability of exported data with 03_marginal
 
 # Calcuate distribution function and save ---------------------------------
 
-save(dt, n, markets, file = "./data/tmp/03_tmp.RData")
+dt_gpd <- dt
+save(dt_gpd, n, markets, q, file = "./data/tmp/03_tmp_gpd.RData")
 

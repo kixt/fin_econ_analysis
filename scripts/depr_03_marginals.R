@@ -245,14 +245,13 @@ densities[is.na(tail), tail := "none"]
 
 ggplot() +
   geom_density(aes(x = res), subset(dt, tail != "none")) +
-  geom_line(aes(x = x, y = density), subset(densities, tail != "none"), 
+  geom_line(aes(x = x, y = density / q), subset(densities, tail != "none"), 
             colour = "red") +
-  facet_wrap(iso3c ~ tail, scales = "free") +
+  facet_wrap(iso3c ~ tail, scales = "free_x") +
   theme_minimal()
-
-# fit not very good at all
 
 
 # Export fit results ------------------------------------------------------
 
-save(dt, n, markets, file = "./data/tmp/03_tmp.RData")
+dt_stsged <- dt
+save(dt_stsged, n, markets, file = "./data/tmp/03_tmp_stsged.RData")
