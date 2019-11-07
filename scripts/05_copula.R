@@ -64,26 +64,20 @@ conc[[3]]
 
 # create data.table of empirical quantiles to check dependence
 eqntls <- dcast(dt, Date ~ iso3c, value.var = "eqntl")
+dens <- dcast(dt, Date ~ iso3c, value.var = "qntl")
+
+dens[, Date := NULL]
+dens <- as.matrix(dens)
 
 
 # DEU -- FRA pair ---------------------------------------------------------
 
-# characteristic pattern for DEU--FRA, almost linear, with clustering in corners,
-# i.e. strong tail dependence
-ggplot(eqntls, aes(x = USA, y = DEU)) + 
-  geom_point()
+ecop1 <- empCopula(dens[, c("DEU", "FRA")], smoothing = "beta")
+ecop1_plot <- wireframe2(ecop1, FUN = dCopula, screen = list(z = 10, x = -60))
+print(ecop1_plot)
 
-# extract pairwise data for DEU and FRA, reshape/convert to numeric matrix
-dt_DF <- rbindlist(list(dt["DEU"], dt["FRA"]))
-c_dt_DF <- dcast(dt_DF, Date ~ iso3c, value.var = "qntl")
-rm(dt_DF)
-c_dt_DF[, Date := NULL]
-c_dt_DF <- as.matrix(c_dt_DF)
+tcop <- fitCopula(tCopula(), dens[, c("DEU", "FRA")], method = "mpl")
 
-c_dt <- dcast(dt, Date ~ iso3c, value.var = "qntl")
-c_dt[, Date := NULL]
-c_dt <- as.matrix(c_dt)
+r <- rCopula(10, tcop@copula)
 
-test <- fitCopula(copula = tCopula(), data = c_dt_DF)
-
-fitLambda(c_dt) - fitLambda(c_dt, lower.tail = F)
+wireframe2(tcop@copula, FUN = dCopula, screen = list(z = 10, x = -65))
