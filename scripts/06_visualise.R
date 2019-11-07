@@ -13,7 +13,7 @@ library(viridis)
 
 # Load data ---------------------------------------------------------------
 
-load("./data/tmp/03_tmp.RData")
+load("./data/tmp/04_tmp.RData")
 
 
 # Heatmap of empirical quantiles ------------------------------------------

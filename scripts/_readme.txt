@@ -25,17 +25,17 @@ NTNU Trondheim
 - fit is much better than that of skew-t and skew-GED in tails
 - exports 03_tmp_gpd.RData
 
-03_marginals_gof.R
+04_marginals_gof.R
 - imports 03_tmp_stsged.RData and 03_tmp_gpd.RData
 - calculate MSE per tail, compare by tail
 - exports dataset with distribution function evaluated at the standardised residuals
 
-04_copula.R
-- imports data produced by 03_marginals_gpd.R
+05_copula.R
+- imports data produced by 04_marginals_gof.R
 - calculate and compare concordance measures on the values of the distribution function, and their empirical counterparts
 - fit copulas...
 
-05_visualise.R
-- imports data produced by 03_marginals_gpd.R
+06_visualise.R
+- imports data produced by 04_marginals_gof.R
 - plot a heat map of pairwise distribution values on [0, 1]^2 (calculated as a 2D KDE)
 - plot a heat map of a 2D KDE of the GARCH residuals

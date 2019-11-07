@@ -41,4 +41,4 @@ dt[, mean(mse_gpd - mse_stsged), by = .(iso3c, tail)]
 dt[, c("d_gpd", "mse_gpd", "mse_stsged") := NULL]
 colnames(dt)[which(colnames(dt) == "d_stsged")] <- "qntl"
 
-save(dt, markets, n, file = "./data/tmp/03_tmp.RData")
+save(dt, markets, n, file = "./data/tmp/04_tmp.RData")
