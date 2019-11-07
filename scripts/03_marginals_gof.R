@@ -6,6 +6,7 @@
 # November 2019
 
 ## Compare goodness of fit for the different specification of marginals
+# determine best fit and export data
 
 library(data.table)
 
@@ -33,3 +34,11 @@ dt[, c("mse_gpd", "mse_stsged") := .(mean((eqntl - d_gpd)^2),
 # MSE in lower tail always lower for skew-t/skew-GED compared to GPD; in upper tail
 # GPD typically better
 dt[, mean(mse_gpd - mse_stsged), by = .(iso3c, tail)]
+
+
+# Export data -------------------------------------------------------------
+
+dt[, c("d_gpd", "mse_gpd", "mse_stsged") := NULL]
+colnames(dt)[which(colnames(dt) == "d_stsged")] <- "qntl"
+
+save(dt, markets, n, file = "./data/tmp/03_tmp.RData")

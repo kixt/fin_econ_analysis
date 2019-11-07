@@ -15,17 +15,20 @@ NTNU Trondheim
 - exports the main dataset appended with the GARCH results
 
 03_marginals.R
-- soft-deprecated, use 03_marginals_gpd.R instead
 - imports data produced by 02_garch.R
 - fit parametric distribution (skew-t and skew-generalised error distribution) to the standardised residuals produced in 02_garch.R
-- exports the main dataset appended with the fitted distribution function evaluated at the values of the GARCH residuals
-- fit is pretty bad in tails, so use 03_marginals_gpd.R
+- exports 03_tmp_stsged.RData
 
 03_marginals_gpd.R
 - imports data produced by 02_garch.R
 - fit generalised Pareto distribution to the tails of the GARCH residuals, use the ECDF in the middle
 - fit is much better than that of skew-t and skew-GED in tails
-- exports the main dataset appended with the concatenated distribution function evaluated at the values of the GARCH residuals
+- exports 03_tmp_gpd.RData
+
+03_marginals_gof.R
+- imports 03_tmp_stsged.RData and 03_tmp_gpd.RData
+- calculate MSE per tail, compare by tail
+- exports dataset with distribution function evaluated at the standardised residuals
 
 04_copula.R
 - imports data produced by 03_marginals_gpd.R
