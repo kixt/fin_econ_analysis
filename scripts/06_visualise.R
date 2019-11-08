@@ -61,6 +61,10 @@ ggplot(eq_kde_dens, aes(x, y, fill = z)) +
   facet_wrap(pair ~ .)
 
 
+# # alternative plot: as wireframe
+# lattice::wireframe(z ~ x+y, (eq_kde_dens[pair == "DEU-FRA", .(x,y,z)]), screen = list(z = 10, x = -65))
+
+
 # Heatmap of joint density estimate ---------------------------------------
 
 support <- c(-8, 8)
