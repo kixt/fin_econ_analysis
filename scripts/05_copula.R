@@ -18,10 +18,10 @@ load("./data/tmp/04_tmp.RData")
 # Empirical quantiles -----------------------------------------------------
 
 # create matrix of pseudo observations to use in copula functions
-dens <- dcast(dt, Date ~ iso3c, value.var = "qntl")
+dis <- dcast(dt, Date ~ iso3c, value.var = "Fh")
 
-dens[, Date := NULL]
-dens <- as.matrix(dens)
+dis[, Date := NULL]
+dis <- as.matrix(dis)
 
 
 # Concordance measures ----------------------------------------------------
@@ -72,8 +72,8 @@ conc[[3]]
 # Check symmetry of tail dependences --------------------------------------
 
 # non-parametric estimators of pairwise dependence parameters
-dep_l <- fitLambda(dens)
-dep_u <- fitLambda(dens, lower.tail = FALSE)
+dep_l <- fitLambda(dis)
+dep_u <- fitLambda(dis, lower.tail = FALSE)
 
 (dep_l - dep_u) / dep_l
 # only DEU-IRL, FRA-IRL, FRA-ITA with not too large relative differences in 
@@ -120,11 +120,11 @@ for(i in 1:(n - 1)) {
 
 # DEU -- FRA pair ---------------------------------------------------------
 
-ecop1 <- empCopula(dens[, c("DEU", "FRA")], smoothing = "beta")
+ecop1 <- empCopula(dis[, c("DEU", "FRA")], smoothing = "beta")
 ecop1_plot <- wireframe2(ecop1, FUN = dCopula, screen = list(z = 10, x = -60), n.grid = 100)
 print(ecop1_plot)
 
-tcop <- fitCopula(tCopula(), dens[, c("DEU", "USA")], method = "mpl")
+tcop <- fitCopula(tCopula(), dis[, c("DEU", "USA")], method = "mpl")
 
 wireframe2(tcop@copula, FUN = dCopula, screen = list(z = 10, x = -65))
 
@@ -132,7 +132,7 @@ mixcop <- mixCopula(list(claytonCopula(1),
                          gumbelCopula(1.5),
                          frankCopula(1)))
 
-test <- fitCopula(mixcop, dens[, c("DEU", "USA")], method = "mpl")
+test <- fitCopula(mixcop, dis[, c("DEU", "USA")], method = "mpl")
 
 wireframe2(test@copula, FUN = dCopula, screen = list(z = 5, x = -70))
 
@@ -141,9 +141,9 @@ wireframe2(test@copula, FUN = dCopula, screen = list(z = 5, x = -70))
 
 # laod data from HPC calculation
 load("./data/tmp/cop_mix_fit.RData")
+load("./data/tmp/mix_cop_vola.RData")
+load("./data/tmp/gof_mix_t_res.RData")
 
 
-lapply(mc_fit, function(x) x[[2]]@copula@w)
-
-
+lapply(mc_vola_fit, function(x) lapply(x, function(y) lapply(y[[2]], function(z) z@copula@w)))
 
