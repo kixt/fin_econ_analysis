@@ -133,11 +133,11 @@ pgpd_ecdf_mix <- function(dat, tails, x = "res", t = "tail") {
   return(dt[, p_est])
 }
 
-dt[, eqntl := copula::pobs(res), by = iso3c]
-dt[, qntl := pgpd_ecdf_mix(.SD, fitted_tails[[.GRP]]), by = iso3c]
+dt[, eFh := copula::pobs(res), by = iso3c]
+dt[, Fh := pgpd_ecdf_mix(.SD, fitted_tails[[.GRP]]), by = iso3c]
 
 # tail fit not super either, also high SE in parameter estimates of shape
-ggplot(dt, aes(x = qntl)) + 
+ggplot(dt, aes(x = Fh)) + 
   geom_histogram(bins = 100) +
   facet_wrap(iso3c ~ .)
 

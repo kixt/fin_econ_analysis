@@ -213,15 +213,15 @@ pfn <- function(x, object) {
 
 # calculate cdf values at the empirical observations, complicated looking call
 # to have matching argument names
-dt[, qntl := do.call(pfn, args = list(x = res, object = fin_fit[[.GRP]])), 
+dt[, Fh := do.call(pfn, args = list(x = res, object = fin_fit[[.GRP]])), 
    by = iso3c]
 
 # ECDF of residuals
 # copula::pobs() returns ecdf values scaled by n/(n+1), st. everything in unit cube
-dt[, eqntl := copula::pobs(res), by = iso3c]
+dt[, eFh := copula::pobs(res), by = iso3c]
 
 # estimated density overpredicts extreme events, fewer observed than predicted
-ggplot(dt, aes(x = qntl, group = iso3c)) +
+ggplot(dt, aes(x = Fh, group = iso3c)) +
   geom_histogram(bins = 100) +
   facet_wrap(iso3c ~ .) +
   theme_minimal()
