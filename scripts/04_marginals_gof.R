@@ -51,8 +51,11 @@ dt[tail == "upper", cvm.test((Fh_stsged - 1) / q + 1), by = .(iso3c)]
 
 # Export data -------------------------------------------------------------
 
-dt[, c("Fh_stsged", "mse_gpd", "mse_stsged") := NULL]
 colnames(dt)[which(colnames(dt) == "Fh_gpd")] <- "Fh"
+#colnames(dt)[which(colnames(dt) == "Fh_stsged")] <- "Fh"
+dt[, c("Fh_stsged", "mse_gpd", "mse_stsged") := NULL]
+#dt[, c("Fh_gpd", "mse_gpd", "mse_stsged") := NULL]
+#dt[, c("mse_gpd", "mse_stsged") := NULL]
 
 save(dt, markets, n, file = "./data/tmp/04_tmp.RData")
 

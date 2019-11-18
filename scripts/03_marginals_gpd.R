@@ -63,8 +63,15 @@ for(m in markets) {
   # fit GPD per country and tail
   for(t in c("lower", "upper")) {
     x <- dt[.(m, t), res]
+    # take first values outside tails as thresholds, otherwise F_hat(thresh) = 0
+    thr <- switch(
+      t, 
+      "lower" = -1 * min(dt[.(m, "none"), res]),
+      "upper" = max(dt[.(m, "none"), res])
+      )
+    
     if(t == "lower") x <- -1 * x
-    fit_gpd[[m]][[t]] <- fitgpd(x, min(x))
+    fit_gpd[[m]][[t]] <- fitgpd(x, thr)
   }
 
   # extract relevant fitting results into objects of classes defined above
@@ -100,7 +107,6 @@ pgpd_ecdf_mix <- function(dat, tails, x = "res", t = "tail") {
   # Returns:
   #   the distribution function evaluated at the values of dat[, get(x)]
   
-
   q <- tails@quantile
   
   # for deployment in dt[, j = , by = ] which makes implicit use of `:=` in .SD
