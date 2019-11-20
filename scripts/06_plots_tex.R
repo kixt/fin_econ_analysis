@@ -12,6 +12,13 @@ library(ggplot2)
 library(data.table)
 
 
+# Load data ---------------------------------------------------------------
+
+load("./data/tmp/04_tmp.RData")
+
+plot_scale <- 1.5
+
+
 # Copula plots ------------------------------------------------------------
 
 copulas <- c("Frank", "Clayton", "Gumbel", "t")
@@ -43,9 +50,35 @@ cop_fams <- ggplot(u, aes(x = x1, y = x2, group = fam)) +
   xlim(-4, 4) +
   ylim(-4, 4)
 
-
 ggsave("../tex/figures/cop_fams.pdf",
        cop_fams,
        device = "pdf",
        width = 10, height = 10, units = "cm",
-       scale = 1.5)
+       scale = plot_scale)
+
+
+# Returns series ----------------------------------------------------------
+
+labeller <- function(x) {
+  iso3c <- vector("character", length(x))
+  for(i in seq_along(x)) {
+    iso3c[i] <- dt[index == x[i], iso3c][1]
+  }
+  
+  if(any(x == "SP500")) x[which(x == "SP500")] <- "S&P500"
+  paste0(countrycode::countrycode(iso3c, "iso3c", "country.name"), " (", x, ")")
+}
+
+rets <- ggplot(dt, aes(x = Date, y = ret, group = index)) +
+  geom_line(size = 0.1) +
+  facet_wrap(~index, ncol = 1, labeller = as_labeller(labeller)) +
+  theme_minimal() +
+  ylab("Return") +
+  theme(axis.text.y = element_text(size = 6))
+
+ggsave("../tex/figures/returns_ts.pdf",
+       rets,
+       device = "pdf",
+       width = 10, height = 7, units = "cm",
+       scale = plot_scale)
+
