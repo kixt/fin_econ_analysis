@@ -48,6 +48,24 @@ dt[tail == "lower", cvm.test(Fh_stsged / q), by = .(iso3c)][rep(c(T, F), n)]
 dt[tail == "upper", cvm.test((Fh_gpd - 1) / q + 1), by = .(iso3c)][rep(c(T, F), n)]
 dt[tail == "upper", cvm.test((Fh_stsged - 1) / q + 1), by = .(iso3c)][rep(c(T, F), n)]
 
+# # export results
+# cvm_res <- rbindlist(list(
+#   dt[tail == "lower", 
+#      cvm.test(Fh_gpd / q), by = .(iso3c)][rep(c(T, F), n)],
+#   dt[tail == "lower", 
+#      cvm.test(Fh_stsged / q), by = .(iso3c)][rep(c(T, F), n)],
+#   dt[tail == "upper", 
+#      cvm.test((Fh_gpd - 1) / q + 1), by = .(iso3c)][rep(c(T, F), n)],
+#   dt[tail == "upper", 
+#      cvm.test((Fh_stsged - 1) / q + 1), by = .(iso3c)][rep(c(T, F), n)]
+# ))
+# 
+# cvm_res[, tail := c(rep("lower", 2 * n), rep("upper", 2 * n))]
+# cvm_res[, distr := stringr::str_extract(data.name, "gpd|stsged")]
+# cvm_res[, data.name := NULL]
+# 
+# save(cvm_res, file = "./data/tmp/cvm_gof_margins.RData")
+
 
 # Export data -------------------------------------------------------------
 

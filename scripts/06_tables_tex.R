@@ -97,3 +97,38 @@ descr_ret_sg <- str_replace(descr_ret_sg, "p-value", "$p$-value")
 descr_ret_sg <- str_remove(descr_ret_sg, "variable")
 cat(descr_ret_sg, sep = "\n")
 
+
+# Cramer-von Mises marginals GoF ------------------------------------------
+
+load("./data/tmp/cvm_gof_margins.RData")
+
+cvm_res[, country := countrycode(iso3c, "iso3c", "country.name")]
+cvm_res[, c("method", "iso3c") := NULL]
+setcolorder(cvm_res, c(5, 3, 1, 2, 4))
+setorder(cvm_res, country, tail)
+colnames(cvm_res)[1:4] <- c("Country", "Tail", "Test statistic", "p-value")
+
+cvm_gpd <- cvm_res[distr == "gpd"]
+cvm_gpd[, distr := NULL]
+
+cvm_gpd_sg <- stargazer(
+  cvm_gpd, 
+  summary = FALSE,
+  label = "tab:margins_cvm",
+  rownames = FALSE,
+  digits = 3
+  )
+
+cvm_gpd_sg <- caption_at_bottom(cvm_gpd_sg)
+
+cvm_gpd_sg <- str_replace(
+  cvm_gpd_sg, 
+  "caption[{][}]", 
+  paste("caption{Results of Cramér-von Mises \\\\acs*{gof} tests of the fitted ", 
+        "\\\\acs*{gpd} in the tails of the distributions.}", 
+        sep = "")
+)
+
+cvm_gpd_sg <- str_replace(cvm_gpd_sg, "p-value", "$p$-value")
+cvm_gpd_sg <- str_remove(cvm_gpd_sg, "Country")
+cat(cvm_gpd_sg, sep = "\n")
