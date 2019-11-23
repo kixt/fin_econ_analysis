@@ -42,11 +42,11 @@ dt[, mean(mse_gpd - mse_stsged), by = .(iso3c, tail)]
 # apply CvM test in the tails (only there, otherwise mixture of ecdf part in 
 # mixed GPD fit kind of cheating)
 
-dt[tail == "lower", cvm.test(Fh_gpd / q), by = .(iso3c)]
-dt[tail == "lower", cvm.test(Fh_stsged / q), by = .(iso3c)]
+dt[tail == "lower", cvm.test(Fh_gpd / q), by = .(iso3c)][rep(c(T, F), n)]
+dt[tail == "lower", cvm.test(Fh_stsged / q), by = .(iso3c)][rep(c(T, F), n)]
 
-dt[tail == "upper", cvm.test((Fh_gpd - 1) / q + 1), by = .(iso3c)]
-dt[tail == "upper", cvm.test((Fh_stsged - 1) / q + 1), by = .(iso3c)]
+dt[tail == "upper", cvm.test((Fh_gpd - 1) / q + 1), by = .(iso3c)][rep(c(T, F), n)]
+dt[tail == "upper", cvm.test((Fh_stsged - 1) / q + 1), by = .(iso3c)][rep(c(T, F), n)]
 
 
 # Export data -------------------------------------------------------------
