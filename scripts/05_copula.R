@@ -205,3 +205,18 @@ for(i in seq_along(best_cop)) {
 
 save(best_cop, file = "./data/tmp/best_cop.RData")
 
+
+# Goodness of Fit ---------------------------------------------------------
+
+cop_res <- setClass(
+  "cop_res", slots = list(
+    pairname = "character", regime = "character", x = "matrix", u = "matrix", 
+    copula = "fitCopula"
+  )
+)
+
+load("./data/tmp/gof_res.RData")
+
+lapply(gof$low, function(x) x@copula@fitting.stats$convergence)
+
+lapply(best_cop$low, function(x) x[[1]]@fitting.stats$convergence)
