@@ -19,6 +19,36 @@ load("./data/tmp/04_tmp.RData")
 plot_scale <- 1.5
 
 
+# Labeller functions ------------------------------------------------------
+
+ret_lab <- function(x) {
+  
+  #if(x == "sig") return("Volatility")
+  #if(x == "ret") return("Return")
+  
+  iso3c <- vector("character", length(x))
+  for(i in seq_along(x)) {
+    iso3c[i] <- dt[index == x[i], iso3c][1]
+  }
+  
+  if(any(x == "SP500")) x[which(x == "SP500")] <- "S&P500"
+  paste0(countrycode::countrycode(iso3c, "iso3c", "country.name"), " (", x, ")")
+}
+
+lab_ret_vol <- function(x) {
+  res <- x
+  for(i in which(!(res %in% c("ret", "sig")))) {
+    res[i] <- dt[index == x[i], iso3c][1]
+    if(x[i] == "SP500") x[i] <- "S&P500"
+    res[i] <- paste0(countrycode::countrycode(res[i], "iso3c", "country.name"), 
+                     " (", x[i], ")")
+  }
+  for(i in which(res == "ret")) res[i] <- "Return"
+  for(i in which(res == "sig")) res[i] <- "Volatility"
+  return(res)
+}
+
+
 # Copula plots ------------------------------------------------------------
 
 copulas <- c("Frank", "Clayton", "Gumbel", "t")
@@ -59,20 +89,6 @@ ggsave("../tex/figures/cop_fams.pdf",
 
 # Returns series ----------------------------------------------------------
 
-ret_lab <- function(x) {
-  
-  #if(x == "sig") return("Volatility")
-  #if(x == "ret") return("Return")
-  
-  iso3c <- vector("character", length(x))
-  for(i in seq_along(x)) {
-    iso3c[i] <- dt[index == x[i], iso3c][1]
-  }
-  
-  if(any(x == "SP500")) x[which(x == "SP500")] <- "S&P500"
-  paste0(countrycode::countrycode(iso3c, "iso3c", "country.name"), " (", x, ")")
-}
-
 rets <- ggplot(dt, aes(x = Date, y = ret, group = index)) +
   geom_line(size = 0.1) +
   facet_wrap(~index, ncol = 1, labeller = as_labeller(ret_lab)) +
@@ -109,19 +125,6 @@ pdt_ret_vol <- melt(dt,
                     id.vars = c("index", "Date"), 
                     measure.vars = c("ret", "sig"))
 
-lab_ret_vol <- function(x) {
-  res <- x
-  for(i in which(!(res %in% c("ret", "sig")))) {
-    res[i] <- dt[index == x[i], iso3c][1]
-    if(x[i] == "SP500") x[i] <- "S&P500"
-    res[i] <- paste0(countrycode::countrycode(res[i], "iso3c", "country.name"), 
-                     " (", x[i], ")")
-  }
-  for(i in which(res == "ret")) res[i] <- "Return"
-  for(i in which(res == "sig")) res[i] <- "Volatility"
-  return(res)
-}
-
 vols_rets <- ggplot(pdt_ret_vol, aes(x = Date, y = value, group = index)) +
   geom_line(size = 0.15) +
   facet_wrap(index~variable, 
@@ -138,3 +141,22 @@ ggsave("../tex/figures/vola_ret_ts.pdf",
        device = "pdf",
        width = 10, height = 10, units = "cm",
        scale = plot_scale)
+
+
+# Non-uniform GARCH residuals ---------------------------------------------
+
+load("./data/tmp/03_tmp_stsged.RData")
+
+marg_hist <- ggplot(dt_stsged, aes(x = Fh, group = index)) +
+  geom_histogram(bins = 50) +
+  theme_minimal() +
+  facet_wrap(~index, labeller = as_labeller(ret_lab)) +
+  xlab(expression(hat("F")^p~(epsilon~"*"))) +
+  ylab(NULL)
+
+ggsave("../tex/figures/st_sged_marg_hist.pdf",
+       marg_hist,
+       device = "pdf",
+       width = 10, height = 6, units = "cm",
+       scale = plot_scale)
+       
