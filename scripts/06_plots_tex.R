@@ -59,7 +59,11 @@ ggsave("../tex/figures/cop_fams.pdf",
 
 # Returns series ----------------------------------------------------------
 
-labeller <- function(x) {
+ret_lab <- function(x) {
+  
+  #if(x == "sig") return("Volatility")
+  #if(x == "ret") return("Return")
+  
   iso3c <- vector("character", length(x))
   for(i in seq_along(x)) {
     iso3c[i] <- dt[index == x[i], iso3c][1]
@@ -71,7 +75,7 @@ labeller <- function(x) {
 
 rets <- ggplot(dt, aes(x = Date, y = ret, group = index)) +
   geom_line(size = 0.1) +
-  facet_wrap(~index, ncol = 1, labeller = as_labeller(labeller)) +
+  facet_wrap(~index, ncol = 1, labeller = as_labeller(ret_lab)) +
   theme_minimal() +
   ylab("Return") +
   theme(axis.text.y = element_text(size = 6))
@@ -82,3 +86,55 @@ ggsave("../tex/figures/returns_ts.pdf",
        width = 10, height = 7, units = "cm",
        scale = plot_scale)
 
+
+# Volatility series -------------------------------------------------------
+
+vols <- ggplot(dt, aes(x = Date, y = sig, group = index)) +
+  geom_line(size = 0.1) +
+  facet_wrap(~index, ncol = 1, labeller = as_labeller(ret_lab)) +
+  theme_minimal() +
+  ylab("Volatility") +
+  theme(axis.text.y = element_text(size = 6))
+
+ggsave("../tex/figures/volatilities_ts.pdf",
+       vols,
+       device = "pdf",
+       width = 10, height = 7, units = "cm",
+       scale = plot_scale)
+
+
+# Volatility and returns --------------------------------------------------
+
+pdt_ret_vol <- melt(dt, 
+                    id.vars = c("index", "Date"), 
+                    measure.vars = c("ret", "sig"))
+
+lab_ret_vol <- function(x) {
+  res <- x
+  for(i in which(!(res %in% c("ret", "sig")))) {
+    res[i] <- dt[index == x[i], iso3c][1]
+    if(x[i] == "SP500") x[i] <- "S&P500"
+    res[i] <- paste0(countrycode::countrycode(res[i], "iso3c", "country.name"), 
+                     " (", x[i], ")")
+  }
+  for(i in which(res == "ret")) res[i] <- "Return"
+  for(i in which(res == "sig")) res[i] <- "Volatility"
+  return(res)
+}
+
+vols_rets <- ggplot(pdt_ret_vol, aes(x = Date, y = value, group = index)) +
+  geom_line(size = 0.15) +
+  facet_wrap(index~variable, 
+             ncol = 1, 
+             scales = "free_y", 
+             labeller = as_labeller(lab_ret_vol, multi_line = FALSE)) +
+  theme_minimal() +
+  ylab(NULL) +
+  theme(axis.text.y = element_text(size = 6)) +
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 3))
+
+ggsave("../tex/figures/vola_ret_ts.pdf",
+       vols_rets,
+       device = "pdf",
+       width = 10, height = 10, units = "cm",
+       scale = plot_scale)
