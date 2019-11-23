@@ -151,7 +151,8 @@ marg_hist <- ggplot(dt_stsged, aes(x = Fh, group = index)) +
   geom_histogram(bins = 50) +
   theme_minimal() +
   facet_wrap(~index, labeller = as_labeller(ret_lab)) +
-  xlab(expression(hat("F")^p~(epsilon~"*"))) +
+  xlab("values of fitted CDF") +
+  #xlab(expression(hat("F")^p~(epsilon~"*"))) +
   ylab(NULL)
 
 ggsave("../tex/figures/st_sged_marg_hist.pdf",
