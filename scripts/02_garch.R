@@ -73,6 +73,24 @@ ic[, pref := colnames(.SD)[which.min(.SD)], by = c("iso3c", "ic")]
 pref_d <- ic[ic == "aic", .(iso3c, pref)]
 
 
+# Significance test of parameters -----------------------------------------
+
+sig_test <- function(x) {
+  if(!class(x) == "uGARCHfit") stop("Provide uGARCHfit object.")
+  x@fit$coef / x@fit$se.coef
+}
+
+par_t_stats <- vector("list", n)
+for(i in 1:nrow(pref_d)) {
+  c <- as.character(pref_d[i, iso3c])
+  d <- pref_d[i, pref]
+  
+  par_t_stats[[i]] <- sig_test(fit[[d]][[c]])
+}
+
+sapply(par_t_stats, function(x) x[names(x) == "gamma1"])
+
+
 # Export GARCH results ----------------------------------------------------
 
 # extract standardized residuals, i.e. epsi_t / sig_t|sig_{t-1}, and sigma_t,
