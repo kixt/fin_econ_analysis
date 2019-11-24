@@ -28,7 +28,7 @@ for(i in 1:(n - 1)) {
     m2 <- markets[j]
     
     # reshape data and trim to pairwise complete observations
-    dt_sub <- dcast(dt[.(c(m1, m2))], Date ~ iso3c, value.var = "qntl")
+    dt_sub <- dcast(dt[.(c(m1, m2))], Date ~ iso3c, value.var = "Fh")
     dt_sub <- zoo::na.trim(dt_sub)
     
     # estimate bivariate KDE
@@ -58,7 +58,10 @@ ggplot(eq_kde_dens, aes(x, y, fill = z)) +
   geom_tile() +
   scale_fill_viridis() +
   theme_minimal() +
-  facet_wrap(pair ~ .)
+  #theme(legend.title = element_text("density")) +
+  facet_wrap(pair ~ .) +
+  xlab(expression(u[1~",t"])) +
+  ylab(expression(u[2~",t"]))
 
 
 # # alternative plot: as wireframe

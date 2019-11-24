@@ -5,7 +5,7 @@
 # Thore Petersen
 # October 2019
 
-# fit AR(1)-GJR-GARCH(1, 1) to daily nominal stock returns
+# fit AR(1)-GJR-GARCH(1,1) to daily nominal stock returns
 # select model by country according to AIC, BIC
 
 library(data.table)
