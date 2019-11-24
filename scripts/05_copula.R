@@ -217,6 +217,7 @@ cop_res <- setClass(
 
 load("./data/tmp/gof_res.RData")
 
+
 lapply(gof$low, function(x) x@copula@fitting.stats$convergence)
 
 lapply(best_cop$low, function(x) x[[1]]@fitting.stats$convergence)
