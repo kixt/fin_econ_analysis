@@ -17,6 +17,8 @@ library(data.table)
 load("./data/tmp/04_tmp.RData")
 
 plot_scale <- 1.5
+ts_line_size <- 0.1
+full_wdth <- 10
 
 
 # Labeller functions ------------------------------------------------------
@@ -83,14 +85,14 @@ cop_fams <- ggplot(u, aes(x = x1, y = x2, group = fam)) +
 ggsave("../tex/figures/cop_fams.pdf",
        cop_fams,
        device = "pdf",
-       width = 10, height = 10, units = "cm",
+       width = full_wdth, height = 10, units = "cm",
        scale = plot_scale)
 
 
 # Returns series ----------------------------------------------------------
 
 rets <- ggplot(dt, aes(x = Date, y = ret, group = index)) +
-  geom_line(size = 0.1) +
+  geom_line(size = ts_line_size) +
   facet_wrap(~index, ncol = 1, labeller = as_labeller(ret_lab)) +
   theme_minimal() +
   ylab("Return") +
@@ -99,14 +101,14 @@ rets <- ggplot(dt, aes(x = Date, y = ret, group = index)) +
 ggsave("../tex/figures/returns_ts.pdf",
        rets,
        device = "pdf",
-       width = 10, height = 7, units = "cm",
+       width = full_wdth, height = 7, units = "cm",
        scale = plot_scale)
 
 
 # Volatility series -------------------------------------------------------
 
 vols <- ggplot(dt, aes(x = Date, y = sig, group = index)) +
-  geom_line(size = 0.1) +
+  geom_line(size = ts_line_size) +
   facet_wrap(~index, ncol = 1, labeller = as_labeller(ret_lab)) +
   theme_minimal() +
   ylab("Volatility") +
@@ -115,7 +117,7 @@ vols <- ggplot(dt, aes(x = Date, y = sig, group = index)) +
 ggsave("../tex/figures/volatilities_ts.pdf",
        vols,
        device = "pdf",
-       width = 10, height = 7, units = "cm",
+       width = full_wdth, height = 7, units = "cm",
        scale = plot_scale)
 
 
@@ -126,7 +128,7 @@ pdt_ret_vol <- melt(dt,
                     measure.vars = c("ret", "sig"))
 
 vols_rets <- ggplot(pdt_ret_vol, aes(x = Date, y = value, group = index)) +
-  geom_line(size = 0.15) +
+  geom_line(size = ts_line_size5) +
   facet_wrap(index~variable, 
              ncol = 1, 
              scales = "free_y", 
@@ -139,7 +141,7 @@ vols_rets <- ggplot(pdt_ret_vol, aes(x = Date, y = value, group = index)) +
 ggsave("../tex/figures/vola_ret_ts.pdf",
        vols_rets,
        device = "pdf",
-       width = 10, height = 10, units = "cm",
+       width = full_wdth, height = 10, units = "cm",
        scale = plot_scale)
 
 
@@ -158,6 +160,22 @@ marg_hist <- ggplot(dt_stsged, aes(x = Fh, group = index)) +
 ggsave("../tex/figures/st_sged_marg_hist.pdf",
        marg_hist,
        device = "pdf",
-       width = 10, height = 6, units = "cm",
+       width = full_wdth, height = 5, units = "cm",
        scale = plot_scale)
        
+
+# GARCH residuals ---------------------------------------------------------
+
+resids <- ggplot(dt, aes(x = Date, y = res, group = index)) +
+  geom_line(size = ts_line_size) +
+  facet_wrap(~index, ncol = 1, labeller = as_labeller(ret_lab)) +
+  theme_minimal() +
+  ylab("GARCH residuals") +
+  theme(axis.text.y = element_text(size = 6))
+
+ggsave("../tex/figures/garch_resid_ts.pdf",
+       resids,
+       device = "pdf",
+       width = full_wdth, height = 6, units = "cm",
+       scale = plot_scale)
+
