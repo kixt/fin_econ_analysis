@@ -128,7 +128,7 @@ pdt_ret_vol <- melt(dt,
                     measure.vars = c("ret", "sig"))
 
 vols_rets <- ggplot(pdt_ret_vol, aes(x = Date, y = value, group = index)) +
-  geom_line(size = ts_line_size5) +
+  geom_line(size = ts_line_size) +
   facet_wrap(index~variable, 
              ncol = 1, 
              scales = "free_y", 
