@@ -92,3 +92,24 @@ for(i in seq_along(best_cop)) {
 
 save(best_cop, file = "./data/tmp/best_cop.RData")
 
+
+# Asymmetric volatilities -------------------------------------------------
+
+load("./data/tmp/cop_mix_fit_avola.RData")
+
+mc_avola_aic <- 
+  lapply(
+    mc_avola_fit, function(x) lapply(x, function(y) lapply(y, AIC))
+  )
+mc_avola_min_aic <- 
+  lapply(
+    mc_avola_aic, 
+    function(y) which.min(unlist(y))
+  )
+
+best_cop_avola <- vector("list", n * (n - 1))
+for(i in seq_along(best_cop_avola)) {
+  best_cop_avola[[i]] <- unlist(mc_avola_fit[[i]])[mc_avola_min_aic[[i]]]
+}
+
+save(best_cop_avola, file = "./data/tmp/best_cop_avola.RData")
