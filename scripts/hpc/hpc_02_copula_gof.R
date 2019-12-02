@@ -21,7 +21,7 @@ load("./data/tmp/best_cop.RData")
 
 # Create cluster ----------------------------------------------------------
 
-cl <- makeCluster(10)
+cl <- makeCluster(3)
 clusterEvalQ(cl, .libPaths(new = "./R_libs/libs"))
 clusterEvalQ(cl, library("copula")) # load copula package at nodes
 
@@ -109,7 +109,7 @@ for(i in seq_along(gof)) {
   
   for(j in seq_along(gof[[i]])) {
     gof[[i]][[j]] <- cop_res(
-      pairname = paste0(dimnames(dis_ls[[i]])[[2]], collapse = "-"),
+      pairname = paste0(dimnames(dis_ls[[j]])[[2]], collapse = "-"),
       regime = names(gof)[i],
       u = dis_vola_ls[[i]][[j]],
       x = raw_dat_vola_ls[[i]][[j]],
