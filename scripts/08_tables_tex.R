@@ -194,7 +194,7 @@ gof_res_row <- function(htest, pair, regime) {
       ]
   } else if(c == "Frank") {
     res[
-      c("pi_G", "alpha", "p"), 
+      c("pi_F", "alpha", "p"), 
       value := c(1, htest$parameter, htest$p.value)
       ]
   } else if(c == "m_nt") {
