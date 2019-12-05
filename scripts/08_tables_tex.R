@@ -295,3 +295,74 @@ gof_sg <- str_replace(
 cat(gof_sg)
 
 
+# Tail depedence ----------------------------------------------------------
+
+td_tab <- data.table(
+  rbind(
+    data.table(
+      t(sapply(gof_av, function(x) c(pair = x@pairname, regime = x@regime))),
+      t(sapply(gof_av, function(x) lambda(x@copula@copula))),
+      sapply(gof_av, function(x) rho(x@copula@copula))
+    ),
+    data.table(
+      t(sapply(gof$high, function(x) c(pair = x@pairname, regime = x@regime))),
+      t(sapply(gof$high, function(x) lambda(x@copula@copula))),
+      sapply(gof$high, function(x) rho(x@copula@copula))
+    )
+  )
+  )
+
+colnames(td_tab)[which(colnames(td_tab) == "V3")] <- "rho"
+
+td_tab[regime == "high", regime := "high-high"]
+# helper variables for sorting
+td_tab[, c1 := stringr::str_extract(pair, "^\\w{3}")]
+td_tab[, c2 := stringr::str_extract(pair, "\\w{3}$")]
+td_tab[, r1 := stringr::str_extract(regime, "high")]
+td_tab[, r2 := stringr::str_extract(regime, "low")]
+
+# sort to have same pair, different regime in consecutive rows
+done <- rep(NA_character_, length(unique(td_tab$c1)))
+for(c in unique(td_tab$c1)) {
+  td_tab[
+    !(c1 %in% done) & c2 == c, 
+    c("c1", "c2", "r1", "r2") := .(c2, c1, r2, r1)
+    ]
+  done[which(is.na(done))[1]] <- c
+}
+setorder(td_tab, c1, c2, r1)
+
+td_tab[, pair := paste0(c1, "-", c2)]
+td_tab[, k := ifelse(r2 == "low", 2, 3)]
+td_tab[, c("c1", "c2", "r1", "r2", "regime") := NULL]
+td_tab[is.na(k), k := 4]
+setcolorder(td_tab, c("pair", "k"))
+setorder(td_tab, pair, k)
+
+# stargazer
+td_sg <- stargazer(
+  td_tab, 
+  summary = FALSE,
+  label = "tab:cop_tail_dep",
+  rownames = FALSE,
+  digits = 3
+)
+
+td_sg <- caption_at_bottom(td_sg)
+
+td_sg <- str_replace(td_sg, "pair", "Pair")
+td_sg <- str_replace(td_sg, "\\\\centering", "\\\\centering")
+td_sg <- str_replace(td_sg, " k ", " $k$ ")
+td_sg <- str_replace(td_sg, " rho ", " Spearman's $\\\\rho$ ")
+td_sg <- str_replace(td_sg, " lower ", " $\\\\lambda_l$ ")
+td_sg <- str_replace(td_sg, " upper ", " $\\\\lambda_u$ ")
+
+td_sg <- str_replace(
+  td_sg, 
+  "caption[{][}]", 
+  paste("caption{Upper ($\\\\lambda_u$) and lower ($\\\\lambda_l$) tail ",
+        "dependence, and Spearman's $\\\\rho$ implied by the fitted copulas.}",
+        sep = "")
+  )
+
+cat(td_sg)
