@@ -15,6 +15,8 @@ library(viridis)
 
 load("./data/tmp/04_tmp.RData")
 
+dt[, high_vola := ifelse(sig > quantile(sig, 0.9), TRUE, FALSE), by = iso3c]
+
 
 # Heatmap of empirical quantiles ------------------------------------------
 
@@ -28,8 +30,9 @@ for(i in 1:(n - 1)) {
     m2 <- markets[j]
     
     # reshape data and trim to pairwise complete observations
-    dt_sub <- dcast(dt[.(c(m1, m2))], Date ~ iso3c, value.var = "Fh")
+    dt_sub <- dcast(dt[.(c(m1, m2))][high_vola == T], Date ~ iso3c, value.var = "Fh")
     dt_sub <- zoo::na.trim(dt_sub)
+    dt_sub <- na.exclude(dt_sub)
     
     # estimate bivariate KDE
     # need to include limits to make grid evenly spaced for geom_tiles()
@@ -54,14 +57,21 @@ for(i in 1:(n - 1)) {
 
 eq_kde_dens <- rbindlist(kde_ls)
 
-ggplot(eq_kde_dens, aes(x, y, fill = z)) +
+plot_hm_hv <- ggplot(eq_kde_dens, aes(x, y, fill = z)) +
   geom_tile() +
-  scale_fill_viridis() +
+  scale_fill_viridis(name = "Density") +
   theme_minimal() +
-  #theme(legend.title = element_text("density")) +
-  facet_wrap(pair ~ .) +
+  facet_wrap(pair ~ ., ncol = 2) +
   xlab(expression(u[1~",t"])) +
   ylab(expression(u[2~",t"]))
+
+# ggsave(
+#   "../tex/figures/marg_hm_hv.pdf",
+#   plot_hm_hv,
+#   device = "pdf",
+#   scale = 1.5,
+#   width = 10, height = 12, units = "cm"
+# )
 
 
 # # alternative plot: as wireframe
@@ -79,8 +89,9 @@ for(i in 1:(n - 1)) {
     m2 <- markets[j]
     
     # reshape data and trim to pairwise complete observations
-    dt_sub <- dcast(dt[.(c(m1, m2))], Date ~ iso3c, value.var = "res")
+    dt_sub <- dcast(dt[.(c(m1, m2))][high_vola == TRUE], Date ~ iso3c, value.var = "res")
     dt_sub <- zoo::na.trim(dt_sub)
+    dt_sub <- na.exclude(dt_sub)
     
     # estimate bivariate KDE
     # need to include limits to make grid evenly spaced for geom_tiles()
