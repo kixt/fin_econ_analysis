@@ -138,11 +138,19 @@ vols_rets <- ggplot(pdt_ret_vol, aes(x = Date, y = value, group = index)) +
   theme(axis.text.y = element_text(size = 6)) +
   scale_y_continuous(breaks = scales::pretty_breaks(n = 3))
 
+# for paper
 ggsave("../tex/figures/vola_ret_ts.pdf",
        vols_rets,
        device = "pdf",
        width = full_wdth, height = 10, units = "cm",
        scale = plot_scale)
+
+# for presentation
+ggsave("../tex_pres/figures/vola_ret_ts.pdf",
+       vols_rets,
+       device = "pdf",
+       width = full_wdth, height = 7.5, units = "cm",
+       scale = 2)
 
 
 # Non-uniform GARCH residuals ---------------------------------------------
