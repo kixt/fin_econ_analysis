@@ -2,10 +2,6 @@ Financial Econometrics Term Paper
 Thore Petersen, Autumn/Winter 2019
 NTNU Trondheim
 
-01_clean_bench.R
-- deprecated, use 01_clean.R instead -> use only total return indices
-- cleans the indices Macrobond lists as benchmark equity indices per country, which is a mix between price and total return series
-
 01_clean.R
 - clean the total return indices of the country sample and export the data
 
@@ -30,12 +26,33 @@ NTNU Trondheim
 - calculate MSE per tail, compare by tail
 - exports dataset with distribution function evaluated at the standardised residuals
 
-05_copula.R
+05_dependence.R
 - imports data produced by 04_marginals_gof.R
-- calculate and compare concordance measures on the values of the distribution function, and their empirical counterparts
-- fit copulas...
+- calculate and interpret concordance measures on the values of the distribution function, and their empirical counterparts
 
-06_visualise.R
+06_prep_copula.R
+- imports data produced by 04_marginals_gof.R, hpc/hpc_01_fit_copula.R, and hpc/hpc_01_fit_copula_asym_vola.R on High Performance Computing Cluster
+- check convergence and determine best fitting copula by AIC
+- exports best_cop.RData and best_cop_avola.RData
+
+07_copula_gof.R
+- imports data produced by 04_marginals_gof.R and hpc/hpc_02_copula_gof.R, and hpc/hpc_02_copula_gof_avola.R
+- check GoF results
+- produce table source code for LaTeX
+
+08_plots_tex.R
+- imports various datasets
+- exports .pdf files of plots for paper and presentation
+
+08_tables_tex.R
+- imports various datasets
+- export LaTeX source code of tables for paper
+
+08_visualise.R
 - imports data produced by 04_marginals_gof.R
 - plot a heat map of pairwise distribution values on [0, 1]^2 (calculated as a 2D KDE)
 - plot a heat map of a 2D KDE of the GARCH residuals
+
+/hpc/
+- contains scripts to estimate models on High Performance Computing Cluster
+
