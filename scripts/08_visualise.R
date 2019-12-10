@@ -30,7 +30,10 @@ for(i in 1:(n - 1)) {
     m2 <- markets[j]
     
     # reshape data and trim to pairwise complete observations
-    dt_sub <- dcast(dt[.(c(m1, m2))][high_vola == T], Date ~ iso3c, value.var = "Fh")
+    dt_sub <- dcast(
+      dt[.(c(m1, m2))][high_vola == T], 
+      Date ~ iso3c, value.var = "Fh"
+      )
     dt_sub <- zoo::na.trim(dt_sub)
     dt_sub <- na.exclude(dt_sub)
     
@@ -89,9 +92,9 @@ for(i in 1:(n - 1)) {
     m2 <- markets[j]
     
     # reshape data and trim to pairwise complete observations
-    dt_sub <- dcast(dt[.(c(m1, m2))][high_vola == TRUE], Date ~ iso3c, value.var = "res")
+    dt_sub <- dcast(dt[.(c(m1, m2))], Date ~ iso3c, value.var = "res")
     dt_sub <- zoo::na.trim(dt_sub)
-    dt_sub <- na.exclude(dt_sub)
+    # dt_sub <- na.exclude(dt_sub)
     
     # estimate bivariate KDE
     # need to include limits to make grid evenly spaced for geom_tiles()
