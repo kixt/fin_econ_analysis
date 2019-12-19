@@ -10,6 +10,8 @@
 library(copula)
 library(ggplot2)
 library(data.table)
+library(MASS)
+library(viridis)
 
 
 # Load data ---------------------------------------------------------------
@@ -74,6 +76,7 @@ colnames(u)[2:3] <- c("u1", "u2")
 
 u[, c("x1", "x2") := .(qnorm(u1), qnorm(u2))]
 
+# paper
 cop_fams <- ggplot(u, aes(x = x1, y = x2, group = fam)) +
   geom_point() + 
   #geom_density_2d() +
@@ -86,6 +89,21 @@ ggsave("../tex/figures/cop_fams.pdf",
        cop_fams,
        device = "pdf",
        width = full_wdth, height = 10, units = "cm",
+       scale = plot_scale)
+
+# presentation
+cop_fams <- ggplot(u, aes(x = x1, y = x2, group = fam)) +
+  geom_point() + 
+  #geom_density_2d() +
+  facet_wrap(~fam, nrow = 1) +
+  theme_minimal() +
+  xlim(-4, 4) +
+  ylim(-4, 4)
+
+ggsave("../tex_pres/figures/cop_fams.pdf",
+       cop_fams,
+       device = "pdf",
+       width = full_wdth, height = 3.5, units = "cm",
        scale = plot_scale)
 
 
@@ -187,3 +205,70 @@ ggsave("../tex/figures/garch_resid_ts.pdf",
        width = full_wdth, height = 6, units = "cm",
        scale = plot_scale)
 
+
+# DEU-FRA motivating example ----------------------------------------------
+
+dt[, high_vola := ifelse(sig > quantile(sig, 0.9), TRUE, FALSE), by = iso3c]
+
+pdt <- dt[c("DEU", "FRA")]
+
+dt_kde <- vector("list", 4)
+for(i in 1:4) {
+  pdt_tmp <- switch(
+    i,
+    "1" = rbindlist(list(pdt["DEU"][high_vola == FALSE],
+                         pdt["FRA"][high_vola == FALSE])),
+    "2" = rbindlist(list(pdt["DEU"][high_vola == TRUE],
+                         pdt["FRA"][high_vola == FALSE])),
+    "3" = rbindlist(list(pdt["DEU"][high_vola == FALSE],
+                         pdt["FRA"][high_vola == TRUE])),
+    "4" = rbindlist(list(pdt["DEU"][high_vola == TRUE],
+                         pdt["FRA"][high_vola == TRUE]))
+    )
+  pdt_tmp2 <- dcast(pdt_tmp, Date ~ iso3c, value.var = "Fh")
+  pdt_tmp2 <- na.exclude(pdt_tmp2)
+  
+  kde_tmp <- kde2d(pdt_tmp2[, DEU], pdt_tmp2[, FRA], n = 100, 
+                   lims = c(0, 1, 0, 1))
+  
+  dt_tmp <- expand.grid(x = kde_tmp$x, y = kde_tmp$y)
+  dt_tmp$z <- as.numeric(kde_tmp$z)
+  dt_tmp$k <- i
+  dt_kde[[i]] <- dt_tmp
+}
+
+dt_kde <- rbindlist(dt_kde)
+
+empc_hm_sq <- ggplot(dt_kde, aes(x, y, fill = z)) +
+  geom_tile() +
+  scale_fill_viridis(name = "Density") +
+  scale_x_continuous(breaks = c(0, 0.5, 1)) +
+  scale_y_continuous(breaks = c(0, 0.5, 1)) +
+  theme_minimal() +
+  facet_wrap(~k, ncol = 2, labeller = as_labeller(function(x) paste0("k = ", x))) +
+  xlab(expression(u["DEU ,t"])) +
+  ylab(expression(u["FRA ,t"])) +
+  theme(panel.spacing.x = unit(4, "mm"))
+
+ggsave("../tex_pres/figures/deu_fra_hm_sq.pdf",
+       empc_hm_sq,
+       device = "pdf",
+       width = full_wdth, height = 8, units = "cm",
+       scale = plot_scale)
+
+empc_hm_line <- ggplot(dt_kde, aes(x, y, fill = z)) +
+  geom_tile() +
+  scale_fill_viridis(name = "Density") +
+  scale_x_continuous(breaks = c(0, 0.5, 1)) +
+  scale_y_continuous(breaks = c(0, 0.5, 1)) +
+  theme_minimal() +
+  facet_wrap(~k, ncol = 4, labeller = as_labeller(function(x) paste0("k = ", x))) +
+  xlab(expression(u["DEU ,t"])) +
+  ylab(expression(u["FRA ,t"])) +
+  theme(panel.spacing.x = unit(4, "mm"))
+
+ggsave("../tex_pres/figures/deu_fra_hm_line.pdf",
+       empc_hm_line,
+       device = "pdf",
+       width = full_wdth, height = 3, units = "cm",
+       scale = plot_scale)

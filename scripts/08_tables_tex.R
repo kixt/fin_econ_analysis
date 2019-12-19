@@ -225,8 +225,15 @@ gof_tab_h <- rbindlist(
   lapply(gof_res$high, function(x) gof_res_row(x, NA_character_, NA_character_))
   )
 
+gof_tab_l <- rbindlist(
+  lapply(gof_res$low, function(x) gof_res_row(x, NA_character_, NA_character_))
+)
+
 gof_tab_h[, pair := sapply(gof$high, function(x) x@pairname)]
 gof_tab_h[, regime := "high-high"]
+
+gof_tab_l[, pair := sapply(gof$low, function(x) x@pairname)]
+gof_tab_l[, regime := "low-low"]
 
 gof_tab_av[, pair := sapply(gof_av, function(x) x@pairname)]
 gof_tab_av[, regime := sapply(gof_av, function(x) x@regime)]
@@ -255,8 +262,19 @@ setcolorder(gof_tab_av, c("pair", "k"))
 gof_tab_h[, k := 4]
 gof_tab_h[, regime := NULL]
 
+gof_tab_l[, k := 1]
+gof_tab_l[, regime := NULL]
+
 gof_tab <- rbindlist(list(gof_tab_av, gof_tab_h), use.names = TRUE)
 setorder(gof_tab, pair, k)
+
+# all results in long for only DEU-FRA for presentation
+gof_tab <- rbindlist(list(gof_tab_av, gof_tab_h, gof_tab_l), use.names = TRUE)
+gof_tab <- gof_tab[pair == "DEU-FRA"]
+gof_tab[, pair := NULL]
+setorder(gof_tab, k)
+gof_tab <- melt(gof_tab, id.vars = "k")
+gof_tab <- dcast(gof_tab, variable ~ k)
 
 # stargazer
 gof_sg <- stargazer(
@@ -389,6 +407,13 @@ td_tab[r1 == "high" & r2 == "high", k := 4]
 td_tab[, c("c1", "c2", "r1", "r2", "regime") := NULL]
 setcolorder(td_tab, c("pair", "k"))
 setorder(td_tab, pair, k)
+
+# for presentation
+td_tab <- td_tab[pair == "DEU-FRA"]
+td_tab[, pair := NULL]
+setorder(td_tab, k)
+td_tab <- melt(td_tab, id.vars = "k")
+td_tab <- dcast(td_tab, variable ~ k)
 
 # stargazer
 td_sg <- stargazer(
